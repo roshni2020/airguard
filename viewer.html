@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirGuard Replay</title>
+<style>
+  :root { --bg:#0e1116; --panel:#161b22; --line:#2a313c; --text:#e6edf3; --muted:#8b949e;
+          --pass:#3fb950; --block:#f85149; --warn:#d29922; --accent:#58a6ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:13px/1.45 system-ui, sans-serif; overflow:hidden; }
+  #app { display:grid; grid-template-columns: 1fr 360px; grid-template-rows: 1fr auto; height:100vh; }
+  #view { position:relative; grid-row:1; grid-column:1; }
+  #view canvas { display:block; }
+  #hud { position:absolute; left:12px; top:12px; background:rgba(14,17,22,.82); border:1px solid var(--line);
+         border-radius:6px; padding:8px 10px; font:12px/1.5 ui-monospace, Consolas, monospace; pointer-events:none; }
+  #legend { position:absolute; left:12px; bottom:12px; background:rgba(14,17,22,.82); border:1px solid var(--line);
+            border-radius:6px; padding:6px 10px; font-size:11px; color:var(--muted); }
+  #legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin:0 4px 0 10px; vertical-align:-1px; }
+  #side { grid-row:1 / span 2; grid-column:2; background:var(--panel); border-left:1px solid var(--line);
+          overflow-y:auto; padding:14px; }
+  #bar { grid-row:2; grid-column:1; display:flex; gap:10px; align-items:center; padding:8px 12px;
+         background:var(--panel); border-top:1px solid var(--line); }
+  #bar input[type=range] { flex:1; }
+  button, select { background:#21262d; color:var(--text); border:1px solid var(--line); border-radius:5px; padding:4px 10px; font:inherit; cursor:pointer; }
+  h1 { font-size:16px; margin:0 0 2px; } h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:16px 0 6px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-weight:700; }
+  .PASS { background:rgba(63,185,80,.18); color:var(--pass); } .BLOCK { background:rgba(248,81,73,.18); color:var(--block); }
+  .muted { color:var(--muted); } .mono { font-family:ui-monospace, Consolas, monospace; font-size:11px; word-break:break-all; }
+  .run { display:flex; justify-content:space-between; gap:6px; padding:4px 6px; border-radius:4px; cursor:pointer; }
+  .run:hover { background:#21262d; } .run.sel { background:#1f2a3a; outline:1px solid var(--accent); }
+  .src { font-size:10px; padding:0 5px; border-radius:3px; border:1px solid var(--line); color:var(--muted); }
+  .viol { border-left:3px solid var(--block); padding:4px 8px; margin:6px 0; background:rgba(248,81,73,.06); }
+  table { width:100%; border-collapse:collapse; font-size:12px; } td, th { padding:3px 4px; border-bottom:1px solid var(--line); text-align:left; }
+  .bar { height:6px; background:var(--accent); border-radius:3px; }
+  #err { position:absolute; inset:0; display:none; align-items:center; justify-content:center; text-align:center; padding:40px; color:var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="hud"></div>
+    <div id="legend"><i style="background:#2ea043"></i>tractor<i style="background:#c9d1d9"></i>aircraft<i style="background:#ff8c1a"></i>jet blast (live)<i style="background:#bc8cff"></i>crew/debris<i style="background:#f85149"></i>violation</div>
+    <div id="err"></div></div>
+  <div id="bar">
+    <button id="play">Pause</button>
+    <select id="speed"><option value="1">1x</option><option value="4" selected>4x</option><option value="10">10x</option></select>
+    <input id="time" type="range" min="0" max="0" value="0" step="1" aria-label="Replay time">
+    <span id="tl" class="mono">t=0.0s</span>
+    <label class="muted"><input id="follow" type="checkbox" checked> follow tractor</label>
+  </div>
+  <div id="side"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const file = decodeURIComponent(location.hash.slice(1)) || 'out/replay_tug_v2_ai.js';
+const s = document.createElement('script');
+s.src = file;
+s.onload = () => start(window.AIRGUARD_REPLAY);
+s.onerror = () => { const e = document.getElementById('err'); e.style.display = 'flex';
+  e.textContent = `Could not load ${file}. Run "py verify.py <candidate>" first, then open viewer.html#out/replay_<candidate>.js`; };
+document.head.appendChild(s);
+
+function start(R) {
+  const $ = id => document.getElementById(id);
+  const V = (x, y, h = 0) => new THREE.Vector3(x, h, -y);     // sim (x east, y north) -> three
+  const view = $('view');
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  view.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const SKY = new THREE.Color(0x0e1116);
+  scene.background = SKY;
+  const camera = new THREE.PerspectiveCamera(50, 1, 1, 5000);
+  camera.position.set(80, 260, 220);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(100, 0, 0);
+  scene.add(new THREE.HemisphereLight(0xdde6f0, 0x1a1f26, 0.9));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(200, 400, 100); scene.add(sun);
+
+  // ---- static real SFO map ----
+  const flat = (poly, color, h, opacity = 1) => {
+    const sh = new THREE.Shape(poly.map(p => new THREE.Vector2(p[0], p[1])));
+    const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshLambertMaterial({ color, transparent: opacity < 1, opacity }));
+    m.rotation.x = -Math.PI / 2; m.position.y = h; scene.add(m);
+  };
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshLambertMaterial({ color: 0x1b2129 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.2; scene.add(ground);
+  R.map.aprons.forEach(p => flat(p, 0x39414d, 0));
+  R.map.terminals.forEach(p => {
+    const sh = new THREE.Shape(p.map(q => new THREE.Vector2(q[0], q[1])));
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 14, bevelEnabled: false });
+    const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0x6e7f96 }));
+    m.rotation.x = -Math.PI / 2; scene.add(m);
+  });
+  const lines = (pts, color, h) => {
+    const g = new THREE.BufferGeometry().setFromPoints(pts.map(p => V(p[0], p[1], h)));
+    const l = new THREE.Line(g, new THREE.LineBasicMaterial({ color })); scene.add(l); return l;
+  };
+  R.map.taxiways.forEach(w => lines(w, 0xd9b44a, 0.1));
+  R.map.parking.forEach(w => lines(w, 0x5a6472, 0.08));
+  const label = (text, color = '#e6edf3', size = 34) => {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+    const x = c.getContext('2d'); x.font = `bold ${size}px system-ui`; x.fillStyle = color;
+    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 32);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+    sp.scale.set(24, 6, 1); return sp;
+  };
+  Object.entries(R.map.stands).forEach(([k, p]) => { const l = label(k); l.position.copy(V(p[0], p[1], 6)); scene.add(l); });
+
+  // ---- dynamic objects ----
+  const dyn = new THREE.Group(); scene.add(dyn);
+  const white = new THREE.MeshLambertMaterial({ color: 0xc9d1d9 });
+  const blastMat = st => new THREE.MeshBasicMaterial({ color: st === 'beacon_on' ? 0xffc04d : 0xff6a1a,
+    transparent: true, opacity: st === 'beacon_on' ? 0.22 : 0.38, side: THREE.DoubleSide, depthWrite: false });
+  const between = (a, b, r, mat, h) => {           // cylinder from a to b (sim coords)
+    const A = V(a[0], a[1], h), B = V(b[0], b[1], h), L = A.distanceTo(B);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L, 12), mat);
+    m.position.copy(A).lerp(B, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize());
+    return m;
+  };
+  const tractor = new THREE.Group();
+  const tb = new THREE.Mesh(new THREE.BoxGeometry(4, 2.2, 2.4), new THREE.MeshLambertMaterial({ color: 0x2ea043 }));
+  tb.position.y = 1.2; tractor.add(tb); scene.add(tractor);
+  const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2, 2.2), new THREE.MeshLambertMaterial({ color: 0x8b949e })); c.position.y = 1; scene.add(c); return c; });
+  let routeLine = null, trail = null, violGroup = new THREE.Group(); scene.add(violGroup);
+
+  let run = null, fi = 0, playing = true, last = performance.now(), acc = 0;
+  function selectRun(i) {
+    run = R.runs[i]; fi = 0;
+    $('time').max = run.frames.length - 1;
+    if (routeLine) scene.remove(routeLine);
+    routeLine = lines(run.route, 0x2ea043, 0.3);
+    violGroup.clear();
+    run.violations.forEach(v => {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 30, 10), new THREE.MeshBasicMaterial({ color: 0xf85149 }));
+      p.position.copy(V(v.x, v.y, 15)); p.userData.t = v.t; violGroup.add(p);
+      const l = label(v.rule, '#f85149', 28); l.position.copy(V(v.x, v.y, 34)); l.userData.t = v.t; violGroup.add(l);
+    });
+    scene.fog = run.visibility < 1000 ? new THREE.Fog(0x9aa3ad, 10, run.visibility * 1.2) : null;
+    scene.background = run.visibility < 1000 ? new THREE.Color(0x9aa3ad) : SKY;
+    document.querySelectorAll('.run').forEach((el, k) => el.classList.toggle('sel', k === i));
+    renderRunInfo(); draw();
+  }
+
+  function draw() {
+    const f = run.frames[fi];
+    dyn.traverse(o => { if (o.geometry) o.geometry.dispose();
+      if (o.material && o.material !== white) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+    dyn.clear();
+    const blink = Math.floor(performance.now() / 400) % 2;
+    f.ac.forEach(a => {
+      const [stand, type, st] = a, fus = [[a[3], a[4]], [a[5], a[6]]], wing = [[a[7], a[8]], [a[9], a[10]]];
+      const blast = [[a[11], a[12]], [a[13], a[14]], [a[15], a[16]], [a[17], a[18]]];
+      const big = type.startsWith('B777') || type.startsWith('A350');
+      dyn.add(between(fus[0], fus[1], big ? 3.1 : 2.0, white, big ? 4.5 : 3.2));
+      dyn.add(between(wing[0], wing[1], 0.6, white, big ? 3.8 : 2.8));
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(1, big ? 11 : 7, 6), white);
+      fin.position.copy(V(fus[1][0], fus[1][1], big ? 9 : 6.5));
+      fin.lookAt(V(fus[0][0], fus[0][1], big ? 9 : 6.5)); dyn.add(fin);
+      if (st !== 'parked') {
+        const b = new THREE.Mesh(new THREE.SphereGeometry(1.2, 10, 8), new THREE.MeshBasicMaterial({ color: blink ? 0xff2020 : 0x400000 }));
+        b.position.copy(V((fus[0][0] + fus[1][0]) / 2, (fus[0][1] + fus[1][1]) / 2, big ? 8.5 : 6)); dyn.add(b);
+        const sh = new THREE.Shape(blast.map(p => new THREE.Vector2(p[0], p[1])));
+        const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), blastMat(st)); m.rotation.x = -Math.PI / 2; m.position.y = 0.4; dyn.add(m);
+        const l = label(`${stand} ${st.replace('_', ' ')}`, st === 'beacon_on' ? '#ffc04d' : '#ff6a1a', 26);
+        l.position.copy(V(fus[1][0], fus[1][1], 16)); dyn.add(l);
+      }
+    });
+    f.ob.forEach(o => {
+      const m = o[0] === 'person' ? new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.8, 8), new THREE.MeshLambertMaterial({ color: 0xbc8cff }))
+                                  : new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.5, 1.2), new THREE.MeshLambertMaterial({ color: 0xa0784a }));
+      m.position.copy(V(o[1], o[2], 0.9)); dyn.add(m);
+    });
+    const prev = run.frames[Math.max(0, fi - 1)];
+    const hd = Math.atan2(f.y - prev.y, f.x - prev.x);
+    tractor.position.copy(V(f.x, f.y, 0)); if (fi > 0 && (f.x !== prev.x || f.y !== prev.y)) tractor.rotation.y = hd;
+    carts.forEach((c, k) => { const p = run.frames[Math.max(0, fi - 2 * (k + 1))]; c.position.set(p.x, 1, -p.y); });
+    if (trail) scene.remove(trail);
+    trail = lines(run.frames.slice(0, fi + 1).map(q => [q.x, q.y]), 0x7ee787, 0.5);
+    violGroup.children.forEach(o => o.visible = o.userData.t <= f.t);
+    if ($('follow').checked) { const d = camera.position.clone().sub(controls.target); controls.target.copy(V(f.x, f.y, 0)); camera.position.copy(controls.target).add(d); }
+    $('time').value = fi; $('tl').textContent = `t=${f.t.toFixed(1)}s`;
+    const fmt = v => v >= 999 ? '-' : v.toFixed(1);
+    $('hud').innerHTML = `<b>${run.name}</b> &middot; round ${run.round} (${run.source})<br>` +
+      `t ${f.t.toFixed(1)} s &nbsp; v ${f.v.toFixed(1)} m/s &nbsp; vis ${run.visibility} m &nbsp; gps &plusmn;${run.gps_noise} m<br>` +
+      `jet blast ${fmt(f.blast)} m &nbsp; aircraft ${fmt(f.min_ac)} m &nbsp; pushback ${fmt(f.min_push)} m &nbsp; crew ${fmt(f.min_obs)} m<br>` +
+      `destination ${run.destination} &nbsp; ${run.done_t != null ? 'delivered at ' + run.done_t + ' s' : 'not delivered'}`;
+  }
+
+  // ---- side panel: verdict, SubQ cross-check, usage ----
+  const M = R.meta, esc = t => String(t ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  let html = `<h1>AirGuard</h1><div class="muted">Independent verifier for AI-written tractor code</div>
+    <h2>Verdict</h2><span class="badge ${M.verdict}">${M.verdict}</span> <span class="mono">${esc(M.candidate)}</span>
+    <div class="muted" style="margin-top:4px">deployed after: <span class="mono">${esc(M.deployed_after)}</span></div>
+    <div class="mono muted">verdict_hash ${M.verdict_hash.slice(0, 24)}&hellip;</div>
+    <div class="muted">spec source: <b>${esc(M.spec_source)}</b></div>`;
+  html += `<h2>SubQ cross-check (long-horizon rounds)</h2><table><tr><th>round</th><th>scenarios</th><th>context</th><th>prompt tok</th></tr>`;
+  const maxc = Math.max(...M.rounds.map(r => r.context_chars || 0), 1);
+  M.rounds.forEach(r => html += `<tr><td>${r.round}</td><td>${r.new_scenarios ?? '-'}</td><td>${r.context_chars ? (r.context_chars / 1000).toFixed(0) + 'k ch<div class="bar" style="width:${100 * r.context_chars / maxc}%"></div>' : esc(r.note || '-')}</td><td>${r.prompt_tokens ?? '-'}</td></tr>`);
+  html += `</table><div class="muted" style="margin-top:4px">Each round resends every 0.1 s step of all previous traces to SubQ - context grows; the judge is deterministic Python.</div>`;
+  if (M.stress) html += `<h2>Large-scale stress (differential)</h2><table>
+    <tr><td>seeded scenarios</td><td>${M.stress.n}</td></tr><tr><td>approved (${esc(M.stress.baseline)}) failed</td><td>${M.stress.baseline_failed}</td></tr>
+    <tr><td>candidate failed</td><td>${M.stress.candidate_failed}</td></tr><tr><td>regressions</td><td>${M.stress.regressions.length}</td></tr>
+    <tr><td>simulated steps</td><td>${M.stress.sim_steps.toLocaleString()}</td></tr></table>`;
+  html += `<h2>Model usage</h2>`;
+  const by = (M.usage || {}).by_model || {};
+  if (!Object.keys(by).length) html += `<div class="muted">No model calls this run (offline or no API key) - built-in floor used.</div>`;
+  else { html += `<table><tr><th>model</th><th>calls</th><th>prompt tok</th><th>out tok</th><th>s</th></tr>`;
+    Object.entries(by).forEach(([m, u]) => html += `<tr><td>${esc(m)}</td><td>${u.calls} (${u.cached} cached)</td><td>${u.prompt_tokens.toLocaleString()}</td><td>${u.completion_tokens.toLocaleString()}</td><td>${u.latency_s}</td></tr>`);
+    html += `</table>`; }
+  if (M.vision) html += `<h2>Meta vision</h2><div>${esc(M.vision.description)}</div>`;
+  html += `<h2>Scenarios</h2><div id="runs"></div><h2>This scenario</h2><div id="runinfo"></div>
+    <h2>Sources</h2><div class="muted">Map: OpenStreetMap contributors (ODbL), real SFO A/B piers. Rules: FAA AC 150/5210-20A. Aircraft dims: FAA ACD; jet blast approximate. Traffic, crew, fog: simulated.</div>`;
+  $('side').innerHTML = html;
+  R.runs.forEach((r, i) => {
+    const d = document.createElement('div'); d.className = 'run';
+    d.innerHTML = `<span>R${r.round} ${esc(r.name)}</span><span><span class="src">${r.source}</span> ${r.violations.length ? '<b style="color:var(--block)">' + r.violations.length + ' viol</b>' : '<span style="color:var(--pass)">ok</span>'}</span>`;
+    d.onclick = () => selectRun(i); $('runs').appendChild(d);
+  });
+  function renderRunInfo() {
+    $('runinfo').innerHTML = run.violations.length ? run.violations.map(v =>
+      `<div class="viol"><b>${esc(v.rule)}</b> at t=${v.t}s (${v.x}, ${v.y})${v.stand ? ' stand ' + v.stand : ''}<br>measured ${v.measured} ${esc(v.unit)}, limit ${v.limit}<br><span class="muted">${esc(v.citation)}</span></div>`).join('')
+      : '<div class="muted">No violations in this scenario.</div>';
+  }
+
+  $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; };
+  $('time').oninput = e => { fi = +e.target.value; draw(); };
+  function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  addEventListener('resize', resize); resize();
+  const firstBad = R.runs.findIndex(r => r.violations.length);
+  selectRun(firstBad >= 0 ? firstBad : 0);
+  (function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = (now - last) / 1000; last = now;
+    if (playing && run) { acc += dt * +$('speed').value / 0.5;   // frames are 0.5 s apart
+      if (acc >= 1) { fi = Math.min(run.frames.length - 1, fi + Math.floor(acc)); acc %= 1; draw(); if (fi === run.frames.length - 1) fi = 0; } }
+    controls.update(); renderer.render(scene, camera);
+  })(performance.now());
+}
+</script>
+</body>
+</html>

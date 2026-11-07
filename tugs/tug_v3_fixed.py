@@ -34,16 +34,22 @@ class Controller:
         if self.i == len(route) - 1:
             v = min(v, max(0.6, 0.4 * dg)) if dg > 1.5 else 0.0
         pts = ahead(route, self.i, pos, LOOKAHEAD)
+        live = ("beacon_on", "engines_running", "pushback")
+        in_blast = any(a["state"] in live and not a["is_destination"] and poly_sdist(pos, a["blast"]) < 0
+                       for a in obs["aircraft"])
         for a in obs["aircraft"]:
             if a["is_destination"]:
                 continue
             if a["state"] in ("beacon_on", "engines_running", "pushback"):
                 inside_now = poly_sdist(pos, a["blast"]) < 0
-                if not inside_now and any(poly_sdist(p, a["blast"]) < BLAST_MARGIN for p in pts):
+                if not inside_now and not in_blast and any(poly_sdist(p, a["blast"]) < BLAST_MARGIN for p in pts):
                     v = 0.0
             if a["state"] == "pushback" and any(footprint_dist(p, a) < PUSH_KEEP for p in pts):
                 v = 0.0
         for o in obs["obstacles"]:
             if any(dist(p, o["pos"]) < OBS_KEEP for p in pts):
                 v = 0.0
+        for a in obs["aircraft"]:   # a pushing aircraft closing in: back off along the route
+            if a["state"] == "pushback" and not a["is_destination"] and footprint_dist(pos, a) < PUSH_KEEP:
+                return {"target": route[max(0, self.i - 1)], "speed": 2.0}
         return {"target": route[self.i], "speed": v}

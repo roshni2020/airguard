@@ -4,11 +4,17 @@ Keys come from env only and are never printed. Cache: cache/<sha256>.json keyed 
 (endpoint, model, messages). OFFLINE=True -> cache only. No key and no cache -> None
 (caller falls back to the built-in floor and records spec_source).
 """
-import base64, hashlib, json, os
+import base64, hashlib, json, os, time
 from pathlib import Path
 import requests
 
 CACHE = Path(__file__).parent / "cache"
+_env = Path(__file__).parent / ".env"          # gitignored; KEY=VALUE lines, never printed
+if _env.exists():
+    for line in _env.read_text().splitlines():
+        k, sep, v = line.partition("=")
+        if sep and k.strip() and not k.lstrip().startswith("#"):
+            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 OFFLINE = os.environ.get("AIRGUARD_OFFLINE") == "1"
 SUBQ_URL = os.environ.get("SUBQ_URL", "https://api.subq.ai/v1/chat/completions")
 SUBQ_MODEL = os.environ.get("SUBQ_MODEL", "subq-preview")
@@ -21,22 +27,37 @@ def key_of(url, model, messages):
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
+USAGE = []   # one record per call: model usage metrics (tokens, latency, cache hits)
+
+
+def _log(model, usage, latency, cached, chars):
+    USAGE.append({"model": model, "prompt_tokens": usage.get("prompt_tokens"),
+                  "completion_tokens": usage.get("completion_tokens"),
+                  "total_tokens": usage.get("total_tokens"), "prompt_chars": chars,
+                  "latency_s": round(latency, 2), "cached": cached})
+
+
 def _call(url, model, key_env, messages, timeout=600):
     h = key_of(url, model, messages)
     f = CACHE / f"{h}.json"
+    chars = len(json.dumps(messages))
     if f.exists():
         r = json.loads(f.read_text())
+        _log(model, r.get("usage", {}), r.get("latency_s", 0), True, chars)
         return {"text": r["text"], "usage": r.get("usage", {}), "hash": h, "cached": True}
     key = os.environ.get(key_env)
     if OFFLINE or not key:
         return None
+    t0 = time.time()
     resp = requests.post(url, headers={"Authorization": f"Bearer {key}"},
                          json={"model": model, "messages": messages, "temperature": 0},
                          timeout=timeout)
     if resp.status_code != 200:
         raise RuntimeError(f"{model} HTTP {resp.status_code}: {resp.text[:300]}")
     j = resp.json()
-    out = {"text": j["choices"][0]["message"]["content"], "usage": j.get("usage", {})}
+    out = {"text": j["choices"][0]["message"]["content"], "usage": j.get("usage", {}),
+           "latency_s": round(time.time() - t0, 2)}
+    _log(model, out["usage"], out["latency_s"], False, chars)
     CACHE.mkdir(exist_ok=True)
     f.write_text(json.dumps({"model": model, **out}, indent=1))
     return {**out, "hash": h, "cached": False}

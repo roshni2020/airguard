@@ -3,7 +3,7 @@ from pathlib import Path
 import llm, verify, meta_implement
 
 llm.OFFLINE = True
-run = lambda p: verify.verify(p, rounds=1, deploy=False)
+run = lambda p: verify.verify(p, rounds=1, deploy=False, send_alert=False)
 
 v1 = run("tugs/tug_v1.py");          assert v1["verdict"] == "PASS", v1["violations"]
 v2 = run("tugs/tug_v2_ai.py");       assert v2["verdict"] == "BLOCK"

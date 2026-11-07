@@ -4,7 +4,7 @@
 """
 import argparse, copy, difflib, hashlib, importlib.util, io, json, sys, time, tokenize
 from pathlib import Path
-import sim, checks, llm
+import sim, checks, llm, stress, alert
 
 ROOT = Path(__file__).parent
 DEPLOYED = ROOT / "deployed.json"
@@ -115,7 +115,53 @@ def deployed():
     return d
 
 
-def verify(cand_path, rounds=4, gif=False, deploy=True):
+def stress_context(cand_path, dep, fuzz):
+    """Large-scale seeded stress set, scored differentially vs the approved controller.
+    Returns (report, text block that goes into SubQ's red-team context)."""
+    fz = [stress.random_scenario(i, seed=7) for i in range(fuzz)]
+    cand_r = stress.run_many(cand_path, fz)
+    base_r = stress.run_many(ROOT / dep["current"]["path"], fz)
+    bf = {r["name"] for r in base_r if r["violations"]}
+    cf = {r["name"] for r in cand_r if r["violations"]}
+    regress = [r for r in cand_r if r["name"] in cf - bf]
+    rep = {"n": fuzz, "seed": 7, "baseline": dep["current"]["path"], "baseline_failed": len(bf),
+           "candidate_failed": len(cf), "regressions": [r["name"] for r in regress],
+           "blocking": len(cf) > len(bf),
+           "first_regression": regress[0]["violations"][0] if regress else None,
+           "sim_steps": sum(r["steps"] for r in cand_r + base_r)}
+    byname = {x["name"]: x for x in fz}
+    rows = ["name,dest,vis,gps_noise,n_aircraft,n_obstacles,min_blast,min_push,min_ac,min_obs,max_v,done_t,violations"]
+    for r in cand_r:
+        sc, nm = byname[r["name"]], r["near_misses"]
+        rows.append(f"{r['name']},{sc['destination']},{sc['visibility']},{sc['gps_noise']},"
+                    f"{len(sc['aircraft'])},{len(sc['obstacles'])},{nm['min_blast']['value']},"
+                    f"{nm['min_push']['value']},{nm['min_ac']['value']},{nm['min_obs']['value']},"
+                    f"{nm['max_v']},{nm['done_t']},{'|'.join(v['rule'] for v in r['violations'])}")
+    ctx = (f"\n\nLARGE-SCALE STRESS DATA: candidate on {fuzz} seeded random scenarios (approved "
+           f"controller failed {len(bf)}, candidate failed {len(cf)}). Every row:\n" + "\n".join(rows) +
+           "\n\nREGRESSIONS (candidate fails, approved passes) - full scenarios:\n" +
+           "\n".join(json.dumps(byname[r["name"]]) + "\n  violations=" + json.dumps(r["violations"])
+                     for r in regress) +
+           "\nPrioritise the stress regressions and the closest stress near-misses.")
+    print(f"stress: {fuzz} scenarios, approved failed {len(bf)}, candidate failed {len(cf)}, "
+          f"{len(regress)} regressions -> {'BLOCKING' if rep['blocking'] else 'non-inferior'}")
+    return rep, ctx
+
+
+def usage_summary():
+    by = {}
+    for u in llm.USAGE:
+        m = by.setdefault(u["model"], {"calls": 0, "cached": 0, "prompt_tokens": 0,
+                                       "completion_tokens": 0, "prompt_chars": 0, "latency_s": 0})
+        m["calls"] += 1; m["cached"] += u["cached"]; m["prompt_chars"] += u["prompt_chars"]
+        m["prompt_tokens"] += u["prompt_tokens"] or 0
+        m["completion_tokens"] += u["completion_tokens"] or 0
+        m["latency_s"] = round(m["latency_s"] + u["latency_s"], 2)
+    return {"calls": list(llm.USAGE), "by_model": by}
+
+
+def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True):
+    llm.USAGE.clear()
     cand_path = Path(cand_path)
     rel = cand_path.resolve().relative_to(ROOT).as_posix()
     dep = deployed()
@@ -155,6 +201,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True):
             v = validate_scenario(s, 100 + i)
             (new.append(v) if v else rejected.append(f"invalid scenario #{i}"))
     scenarios = builtin + new                     # built-in floor scenarios always run
+    stress_rep, stress_ctx = stress_context(cand_path, dep, fuzz) if fuzz else (None, "")
     for rnd in range(rounds):
         if rnd > 0:
             prev = all_res[-1]
@@ -168,7 +215,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True):
                                 f"{trace_csv(r['trace'])}" for r in prev) +
                     f"\n\nCandidate update (comment-stripped diff vs deployed controller):\n{diff}\n"
                     'Return JSON {"scenarios": [up to 4 NEW, harder scenarios targeting the closest '
-                    'near-misses above]} or {"scenarios": []} if you have nothing harder.')
+                    'near-misses above]} or {"scenarios": []} if you have nothing harder.'
+                    + (stress_ctx if rnd == 1 else ""))
             msgs.append({"role": "user", "content": body})
             rr = llm.subq(msgs)
             if not rr:
@@ -200,10 +248,19 @@ def verify(cand_path, rounds=4, gif=False, deploy=True):
 
     flat = [{**v, "scenario": r["scenario"]["name"], "round": i}
             for i, rs in enumerate(all_res) for r in rs for v in r["violations"]]
+    if stress_rep and stress_rep["blocking"]:
+        fv = stress_rep["first_regression"] or {}
+        flat.append({"rule": "stress_noninferiority", "scenario": stress_rep["regressions"][0],
+                     "t": fv.get("t"), "x": fv.get("x"), "y": fv.get("y"), "stand": fv.get("stand"),
+                     "measured": stress_rep["candidate_failed"], "limit": stress_rep["baseline_failed"],
+                     "unit": "failed stress scenarios",
+                     "citation": "differential gate: must not fail more seeded stress scenarios than the "
+                                 "approved controller; first regression: " + str(fv.get("citation", ""))})
     verdict = "BLOCK" if flat else "PASS"
     vision = None
-    if flat:
-        first = flat[0]
+    sim_flat = [v for v in flat if "round" in v]
+    if sim_flat:
+        first = sim_flat[0]
         tr = next(r["trace"] for r in all_res[first["round"]] if r["scenario"]["name"] == first["scenario"])
         vs = next(r["violations"] for r in all_res[first["round"]] if r["scenario"]["name"] == first["scenario"])
         png = ROOT / "out" / f"{cand_path.stem}_violation.png"
@@ -224,7 +281,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True):
         "candidate": rel, "verdict": verdict, "violations": flat,
         "spec_source": spec_source, "invariants": params, "rejected_llm_output": rejected,
         "rounds": log, "scenarios_run": [[r["scenario"] for r in rs] for rs in all_res],
-        "vision": vision,
+        "vision": vision, "stress": stress_rep,
         "hashes": {"candidate": sha(cand_src), "candidate_stripped": sha(strip_comments(cand_src)),
                    **{k: sha(v) for k, v in ctx_files.items()}, "faa_txt": sha(faa),
                    "sfo_osm": sha((ROOT / "data/sfo_osm.json").read_bytes()),
@@ -255,16 +312,28 @@ def verify(cand_path, rounds=4, gif=False, deploy=True):
     else:
         body_dep = dep["current"]["path"]
 
+    if send_alert:
+        alert.send({**body, "deployed_after": body_dep})
+    usage = usage_summary()          # outside verdict_hash: latency varies run to run
+    builtin_names = {b["name"] for b in builtin}
+    runs = [{"round": i, "source": "builtin" if r["scenario"]["name"] in builtin_names else "subq",
+             "trace": r["trace"], "violations": r["violations"]} for i, rs in enumerate(all_res) for r in rs]
+    sim.export_replay(ROOT / "out" / f"replay_{cand_path.stem}.js", runs,
+                      {**body, "deployed_after": body_dep, "usage": usage})
     out = ROOT / "verdicts" / f"{cand_path.stem}_{time.strftime('%Y%m%d_%H%M%S')}.json"
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps({**body, "written_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                               "deployed_after": body_dep}, indent=1))
+                               "deployed_after": body_dep, "usage": usage}, indent=1))
     print(f"\n{verdict}  {rel}   verdict_hash={body['verdict_hash'][:16]}  ({out.name})")
     for v in flat[:5]:
         print(f"  {v['rule']:20} scenario={v['scenario']} t={v['t']}s at ({v['x']},{v['y']}) "
               f"measured={v['measured']} limit={v['limit']}\n    {v['citation']}")
     if vision:
         print(f"  vision: {vision['description']}")
+    for mdl, m in usage["by_model"].items():
+        print(f"  usage {mdl}: {m['calls']} calls ({m['cached']} cached), {m['prompt_tokens']:,} prompt tok, "
+              f"{m['completion_tokens']:,} completion tok, {m['prompt_chars']:,} prompt chars, {m['latency_s']}s")
+    print(f"  replay: open viewer.html#out/replay_{cand_path.stem}.js")
     print(f"  deployed: {body_dep}")
     return body
 
@@ -276,8 +345,10 @@ if __name__ == "__main__":
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--gif", action="store_true")
     ap.add_argument("--no-deploy", action="store_true")
+    ap.add_argument("--fuzz", type=int, default=0, help="add N seeded stress scenarios (differential)")
+    ap.add_argument("--no-alert", action="store_true")
     a = ap.parse_args()
     if a.offline:
         llm.OFFLINE = True
-    b = verify(a.candidate, a.rounds, a.gif, not a.no_deploy)
+    b = verify(a.candidate, a.rounds, a.gif, not a.no_deploy, a.fuzz, not a.no_alert)
     sys.exit(0 if b["verdict"] == "PASS" else 1)

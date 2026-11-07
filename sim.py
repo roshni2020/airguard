@@ -13,6 +13,7 @@ ACTIVE = ("beacon_on", "engines_running", "pushback")   # jet-blast zone live
 STAND_REFS = ["A6", "A7", "A8", "A11", "B11", "B16", "B19", "B20"]
 TRACTOR = dict(max_accel=1.0, max_decel=2.5, max_turn=math.radians(30), max_speed=12.0)
 PUSH_SPEED = 1.0
+BEACON_REACTION_S = 3.0   # time to see a beacon and brake before entering counts as a violation
 
 
 # ---------- geometry ----------
@@ -153,7 +154,7 @@ def run(controller, scenario):
     rng_sensor = min(150.0, vis)
     x, y = route[0]
     hd = math.atan2(route[1][1] - y, route[1][0] - x)
-    v, t, done_t, steps = 0.0, 0.0, None, []
+    v, t, done_t, steps, entered = 0.0, 0.0, None, [], {}
     T = sc.get("duration", sc.get("deadline", 240) + 10)
     while t <= T + 1e-9:
         geoms = [(a, a.geometry(t)) for a in aircraft]
@@ -173,8 +174,20 @@ def run(controller, scenario):
         min_ac = min([footprint_dist((x, y), g) for a, g in geoms if g and a.stand != dest] or [999])
         min_push = min([footprint_dist((x, y), g) for a, g in geoms
                         if g and a.state(t) == "pushback"] or [999])
-        blast = [(poly_sdist((x, y), g["blast"]), a.stand) for a, g in geoms
-                 if g and a.state(t) in ACTIVE and a.stand != dest]
+        # jet blast: inside while engines run / pushback, OR entering while the beacon is on.
+        # Being caught inside the instant a beacon lights is not a violation (you must then exit
+        # before engine start - otherwise the engines_running part fires).
+        blast = []
+        for a, g in geoms:
+            if not g or a.stand == dest:
+                continue
+            sd, st_ = poly_sdist((x, y), g["blast"]), a.state(t)
+            prev = entered.get(a.stand, (999, False))
+            lit = max([e["t"] for e in a.events if e["state"] == "beacon_on" and e["t"] <= t] or [t])
+            ent = st_ == "beacon_on" and sd < 0 and (prev[1] or (prev[0] >= 0 and t - lit >= BEACON_REACTION_S))
+            entered[a.stand] = (sd, ent)
+            if st_ in ("engines_running", "pushback") or ent:
+                blast.append((sd, a.stand))
         bd, bs = min(blast) if blast else (999, None)
         min_obs = min([dist((x, y), o.pos(t)) for o in obstacles] or [999])
         steps.append({"t": round(t, 1), "x": round(x, 2), "y": round(y, 2), "v": round(v, 2),
@@ -271,3 +284,45 @@ def animate(trace, path=None, violations=(), stride=5, show=False):
     if show:
         plt.show()
     plt.close(fig)
+
+
+# ---------- replay export for the three.js viewer ----------
+def export_replay(path, runs, meta, stride=5):
+    """Write out/replay_*.js (`window.AIRGUARD_REPLAY = {...}`) - loads over file://, no server."""
+    BX, BY = (-200, 450), (-320, 200)
+    inside = lambda pts: any(BX[0] <= p[0] <= BX[1] and BY[0] <= p[1] <= BY[1] for p in pts)
+    r1 = lambda pts: [[round(p[0], 1), round(p[1], 1)] for p in pts]
+    mp = {"aprons": [r1(p) for p in MAP["aprons"] if inside(p)],
+          "terminals": [r1(p) for p in MAP["terminals"] if inside(p)],
+          "taxiways": [r1(w) for ws in MAP["taxiways"].values() for w in ws if inside(w)],
+          "parking": [r1(w) for w in MAP["parking"] if inside(w)],
+          "stands": {k: r1([v["nose"]])[0] for k, v in MAP["stands"].items()}}
+    out_runs = []
+    for run_ in runs:
+        tr = run_["trace"]
+        sc = tr["scenario"]
+        acs = [Aircraft(a) for a in sc.get("aircraft", [])]
+        if not any(a.stand == tr["destination"] for a in acs):
+            acs.append(Aircraft({"stand": tr["destination"]}))
+        obs = [Obstacle(o) for o in sc.get("obstacles", [])]
+        frames = []
+        for s in tr["steps"][::stride]:
+            t = s["t"]
+            ac = []
+            for a in acs:
+                g = a.geometry(t)
+                if g:
+                    ac.append([a.stand, a.type, a.state(t), *sum(r1(g["fuselage"]), []),
+                               *sum(r1(g["wing"]), []), *sum(r1(g["blast"]), [])])
+            frames.append({"t": t, "x": s["x"], "y": s["y"], "v": s["v"], "blast": s["blast"],
+                           "min_ac": s["min_ac"], "min_push": s["min_push"], "min_obs": s["min_obs"],
+                           "ac": ac, "ob": [[o.kind, *r1([o.pos(t)])[0]] for o in obs]})
+        out_runs.append({"round": run_["round"], "source": run_["source"], "name": sc.get("name"),
+                         "destination": tr["destination"], "visibility": sc.get("visibility", 5000),
+                         "gps_noise": sc.get("gps_noise", 0.3), "done_t": tr["done_t"],
+                         "deadline": sc.get("deadline", 240), "route": r1(tr["route"]),
+                         "violations": run_["violations"], "frames": frames})
+    Path(path).parent.mkdir(exist_ok=True)
+    Path(path).write_text("window.AIRGUARD_REPLAY = " +
+                          json.dumps({"map": mp, "meta": meta, "runs": out_runs}, separators=(",", ":")) + ";\n")
+    return path
