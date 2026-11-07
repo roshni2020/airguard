@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 rows = [json.loads(l) for l in (Path(__file__).parent / "out/calls.jsonl").read_text().splitlines() if l.strip()]
-ap = argparse.ArgumentParser(); ap.add_argument("--run"); a = ap.parse_args()
+ap = argparse.ArgumentParser(); ap.add_argument("--run"); ap.add_argument("--export", action="store_true"); a = ap.parse_args()
 runs = defaultdict(list)
 for r in rows:
     if not a.run or r["run_id"] == a.run:
@@ -25,3 +25,17 @@ for rid, rs in runs.items():
 print(f"\n{'agent':20} {'calls':>5} {'prompt tok':>12} {'billed (uncached)':>18} {'latency s':>10}")
 for ag, (n, pt, lat, billed) in sorted(tot.items(), key=lambda x: -x[1][1]):
     print(f"{ag or '?':20} {n:>5} {pt:>12,} {billed:>18,} {lat:>10.1f}")
+
+if __name__ == "__main__" and "--export" in __import__("sys").argv:
+    import glob
+    import agents
+    growth = []
+    for f in sorted(glob.glob(str(Path(__file__).parent / "verdicts/*.json"))):
+        v = json.loads(Path(f).read_text())
+        if v.get("spec_source") == "subq" and len(v.get("rounds", [])) > 1:
+            growth.append({"verdict": Path(f).name, "candidate": v["candidate"], "result": v["verdict"],
+                           "rounds": [[r["round"], r.get("prompt_tokens") or 0] for r in v["rounds"]]})
+    out = {"crew": agents.CREW, "calls": rows, "growth": growth,
+           "models": {"subq-preview": "SubQ long-context LLM", "subq-snap-1.1": "SubQ Snap decision model", "muse-spark-1.2": "Meta Muse Spark"}}
+    (Path(__file__).parent / "out/calls.js").write_text("window.OBS = " + json.dumps(out, separators=(",", ":")) + ";\n")
+    print(f"wrote out/calls.js ({len(rows)} calls, {len(growth)} long-horizon runs)")

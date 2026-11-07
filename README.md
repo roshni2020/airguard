@@ -88,6 +88,14 @@ Every SubQ and Meta call records its prompt and completion tokens, prompt charac
 `verify.py` prints totals per model, stores them in the verdict (`usage`, outside `verdict_hash`),
 and the viewer shows them.
 
+## Frontend (open `index.html`)
+
+Four static pages, three.js, no server (they load `out/*.js`):
+- **About** (`about.html`): the story, the agent crew, real vs simulated, around a 3D aircraft and tractor.
+- **Fleet 3D** (`airport.html`): the whole real SFO airport (OpenStreetMap runways, taxiways, terminals, 3,206 buildings, 106 stands) with 16 autonomous tractors running the controller AirGuard approved. Aircraft start engines and push back live. It has a clock, 1x/5x/20x speed, follow-a-bot, and an event feed. Generate it with `py fleet.py`.
+- **Gate evidence** (`viewer.html`): a round-by-round 3D replay of every scenario a candidate faced.
+- **Agents** (`agents.html`): agent observability, with a 3D graph of the crew (node size = tokens), SubQ context growth per round, per-agent totals and the full call timeline. Generate it with `py calls.py --export`.
+
 ## Agent harness
 
 `agents.py` is AirGuard's own small harness, with no framework. Every model call goes through an agent declared there,

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirGuard Agents</title>
+<style>
+  :root { --bg:#0b0e13; --panel:#12161d; --line:#28303b; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --ok:#3fb950; --bad:#f85149; }
+  * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:13px/1.5 system-ui, sans-serif; }
+  nav { display:flex; gap:18px; align-items:center; padding:10px 18px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; }
+  nav b { color:var(--accent); } nav a { color:var(--muted); text-decoration:none; } nav a.on, nav a:hover { color:var(--text); }
+  main { max-width:1200px; margin:0 auto; padding:16px; }
+  #g { height:420px; border:1px solid var(--line); border-radius:8px; background:#0f141b; position:relative; }
+  #g canvas { display:block; border-radius:8px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; margin:14px 0; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .card b { font-size:20px; display:block; } .card span { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+  h2 { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin:20px 0 8px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; } th, td { text-align:left; padding:5px 6px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; } td.n { text-align:right; font-family:ui-monospace, Consolas, monospace; }
+  .bar { height:16px; background:var(--accent); border-radius:3px; min-width:2px; }
+  .tablewrap { overflow-x:auto; }
+</style>
+</head>
+<body>
+<nav><b>AirGuard</b><a href="about.html">About</a><a href="airport.html">Fleet 3D</a><a href="viewer.html#out/replay_tug_v3_fixed.js">Gate evidence</a><a class="on" href="agents.html">Agents</a></nav>
+<main>
+  <h2>Agent crew - node size = tokens consumed, edges = data flow, pulses = calls</h2>
+  <div id="g"></div>
+  <div class="grid" id="cards"></div>
+  <h2>SubQ long-horizon context growth (prompt tokens per red-team round)</h2>
+  <div class="tablewrap"><table id="growth"></table></div>
+  <h2>Per-agent totals</h2>
+  <div class="tablewrap"><table id="totals"></table></div>
+  <h2>Call timeline (newest first, from out/calls.jsonl - hashes only, never prompts or keys)</h2>
+  <div class="tablewrap"><table id="calls"></table></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="out/calls.js"></script>
+<script>
+const O = window.OBS || { crew: {}, calls: [], growth: [] };
+const fmt = n => (n || 0).toLocaleString();
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const tot = {};
+O.calls.forEach(c => { const t = tot[c.agent] ||= { calls: 0, cached: 0, tok: 0, billed: 0, lat: 0, model: c.model };
+  t.calls++; t.cached += c.cached ? 1 : 0; t.tok += c.prompt_tokens || 0; t.billed += c.cached ? 0 : (c.prompt_tokens || 0); t.lat += c.latency_s || 0; });
+const all = Object.values(tot);
+document.getElementById('cards').innerHTML = [
+  ['Model calls traced', fmt(O.calls.length)], ['Prompt tokens (incl. replays)', fmt(all.reduce((s, t) => s + t.tok, 0))],
+  ['Billed tokens (live calls)', fmt(all.reduce((s, t) => s + t.billed, 0))], ['Largest SubQ context', fmt(Math.max(0, ...O.growth.flatMap(g => g.rounds.map(r => r[1]))))]
+].map(([k, v]) => `<div class="card"><b>${v}</b><span>${k}</span></div>`).join('');
+const maxG = Math.max(1, ...O.growth.flatMap(g => g.rounds.map(r => r[1])));
+document.getElementById('growth').innerHTML = '<tr><th>run</th><th>result</th><th>rounds (prompt tokens)</th></tr>' + O.growth.map(g =>
+  `<tr><td>${esc(g.candidate)}<br><span style="color:var(--muted)">${esc(g.verdict)}</span></td><td style="color:${g.result === 'PASS' ? 'var(--ok)' : 'var(--bad)'}">${g.result}</td><td>` +
+  g.rounds.map(r => `<div style="display:flex;gap:8px;align-items:center;margin:2px 0"><span style="width:26px;color:var(--muted)">R${r[0]}</span><div class="bar" style="width:${60 * r[1] / maxG}%"></div><span class="n">${fmt(r[1])}</span></div>`).join('') + '</td></tr>').join('');
+document.getElementById('totals').innerHTML = '<tr><th>agent</th><th>model</th><th>role</th><th>calls</th><th>cached</th><th>prompt tok</th><th>billed tok</th><th>latency s</th></tr>' +
+  Object.entries(tot).sort((a, b) => b[1].tok - a[1].tok).map(([a, t]) => `<tr><td><b>${esc(a)}</b></td><td>${esc(t.model)}</td><td style="color:var(--muted)">${esc(O.crew[a] || '')}</td><td class="n">${t.calls}</td><td class="n">${t.cached}</td><td class="n">${fmt(t.tok)}</td><td class="n">${fmt(t.billed)}</td><td class="n">${t.lat.toFixed(1)}</td></tr>`).join('');
+document.getElementById('calls').innerHTML = '<tr><th>time</th><th>agent</th><th>rnd</th><th>model</th><th>prompt tok</th><th>latency</th><th>cache</th><th>outcome</th><th>sha256</th></tr>' +
+  O.calls.slice().reverse().map(c => `<tr><td>${esc(c.ts.slice(11))}</td><td>${esc(c.agent)}</td><td>${c.round ?? ''}</td><td>${esc(c.model)}</td><td class="n">${fmt(c.prompt_tokens)}</td><td class="n">${c.latency_s}s</td><td>${c.cached ? 'replay' : 'live'}</td><td>${esc(c.outcome)}</td><td style="color:var(--muted);font-family:monospace">${esc((c.prompt_sha256 || '').slice(0, 10))}</td></tr>`).join('');
+
+// ---- 3D agent graph ----
+const el = document.getElementById('g');
+const R = new THREE.WebGLRenderer({ antialias: true }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); el.appendChild(R.domElement);
+const S = new THREE.Scene(), C = new THREE.PerspectiveCamera(50, 1, 1, 1000); C.position.set(0, 26, 62);
+const ctl = new THREE.OrbitControls(C, R.domElement); ctl.autoRotate = true; ctl.autoRotateSpeed = 0.6;
+S.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1));
+const label = (text, color) => { const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
+  x.font = 'bold 30px system-ui'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 256, 32);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false })); s.scale.set(16, 2, 1); return s; };
+const COL = { subq: 0x58a6ff, snap: 0x39c5cf, meta: 0xa371f7, core: 0x3fb950 };
+const nodes = {};
+const add = (name, pos, color, size) => { const m = new THREE.Mesh(new THREE.SphereGeometry(size, 24, 16), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.25 }));
+  m.position.copy(pos); S.add(m); const l = label(name, '#e6edf3'); l.position.copy(pos).add(new THREE.Vector3(0, size + 1.6, 0)); S.add(l); nodes[name] = m; return m; };
+add('Python judge (checks.py)', new THREE.Vector3(0, 0, 0), COL.core, 3.2);
+add('simulator (sim.py, real SFO)', new THREE.Vector3(0, -12, 0), COL.core, 2.6);
+const names = Object.keys(O.crew), maxT = Math.max(1, ...names.map(n => (tot[n] || {}).tok || 0));
+names.forEach((n, i) => { const a = i / names.length * Math.PI * 2, rr = 24;
+  const col = n.startsWith('snap') ? COL.snap : n.startsWith('meta') ? COL.meta : COL.subq;
+  add(n, new THREE.Vector3(Math.cos(a) * rr, 6 + (i % 2) * 4, Math.sin(a) * rr), col, 1.2 + 3.2 * Math.sqrt(((tot[n] || {}).tok || 0) / maxT)); });
+const edges = [];
+const link = (a, b) => { const g = new THREE.BufferGeometry().setFromPoints([nodes[a].position, nodes[b].position]);
+  S.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x30363d }))); edges.push([a, b]); };
+names.forEach(n => link(n, n.startsWith('subq') ? 'simulator (sim.py, real SFO)' : 'Python judge (checks.py)'));
+link('simulator (sim.py, real SFO)', 'Python judge (checks.py)');
+const pulses = [];
+const order = O.calls.map(c => c.agent).filter(a => nodes[a]);
+let k = 0, last = performance.now();
+function resize() { const w = el.clientWidth, h = el.clientHeight; R.setSize(w, h); C.aspect = w / h; C.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+(function loop(now) {
+  requestAnimationFrame(loop);
+  if (order.length && now - last > 700) { last = now; const a = order[k++ % order.length];
+    const target = a.startsWith('subq') ? 'simulator (sim.py, real SFO)' : 'Python judge (checks.py)';
+    const p = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    S.add(p); pulses.push({ p, a: nodes[a].position.clone(), b: nodes[target].position.clone(), t: 0 }); }
+  pulses.forEach(q => { q.t += 0.02; q.p.position.lerpVectors(q.a, q.b, Math.min(1, q.t)); });
+  while (pulses.length && pulses[0].t >= 1) { const q = pulses.shift(); S.remove(q.p); q.p.geometry.dispose(); }
+  ctl.update(); R.render(S, C);
+})(performance.now());
+</script>
+</body>
+</html>

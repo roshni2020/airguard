@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirGuard</title>
+<style>
+  :root { --bg:#0b0e13; --panel:#12161d; --line:#28303b; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --ok:#3fb950; --bad:#f85149; }
+  * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui, sans-serif; }
+  nav { display:flex; gap:18px; align-items:center; padding:10px 18px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; font-size:13px; }
+  nav b { color:var(--accent); } nav a { color:var(--muted); text-decoration:none; } nav a.on, nav a:hover { color:var(--text); }
+  #hero { position:relative; height:440px; overflow:hidden; border-bottom:1px solid var(--line); }
+  #hero canvas { position:absolute; inset:0; }
+  #hero .t { position:absolute; left:max(16px, 6vw); bottom:40px; max-width:620px; text-shadow:0 2px 12px #000; }
+  h1 { font-size:clamp(26px, 4vw, 40px); line-height:1.15; margin:0 0 10px; }
+  main { max-width:900px; margin:0 auto; padding:10px 16px 60px; }
+  h2 { font-size:18px; margin:30px 0 8px; } p { color:#c9d1d9; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:13px; }
+  .card b { display:block; color:var(--text); margin-bottom:4px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; } td, th { padding:6px; border-bottom:1px solid var(--line); text-align:left; }
+  .cta a { display:inline-block; margin:6px 8px 0 0; padding:8px 14px; border-radius:6px; background:#1f6feb; color:#fff; text-decoration:none; font-size:14px; }
+  .cta a.alt { background:#21262d; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<nav><b>AirGuard</b><a class="on" href="about.html">About</a><a href="airport.html">Fleet 3D</a><a href="viewer.html#out/replay_tug_v3_fixed.js">Gate evidence</a><a href="agents.html">Agents</a></nav>
+<div id="hero"><div class="t">
+  <h1>AI is writing the code that drives robots next to airplanes.<br><span style="color:var(--accent)">AirGuard proves it's safe before it runs.</span></h1>
+  <div class="cta"><a href="airport.html">See the SFO fleet in 3D</a><a class="alt" href="viewer.html#out/replay_tug_v2_ai.js">Watch an unsafe update get blocked</a><a class="alt" href="agents.html">Agent observability</a></div>
+</div></div>
+<main>
+  <h2>Why</h2>
+  <p>Driverless baggage tractors already operate beside aircraft at Singapore Changi and Dubai DWC, with trials at Schiphol and Stuttgart.
+  Their driving software is updated often, increasingly by AI. Nobody independently proves an update is safe before it reaches the fleet.</p>
+  <h2>How it works</h2>
+  <div class="grid">
+    <div class="card"><b>1. An AI writes an update</b>Meta Muse Spark turns a change request ("make the route 20% faster") into new controller code.</div>
+    <div class="card"><b>2. SubQ red-teams it</b>SubQ reads the full FAA AC 150/5210-20A, the real SFO map, the code and every earlier simulation trace (up to 676k tokens in one call), then designs harder scenarios each round.</div>
+    <div class="card"><b>3. Python judges</b>A deterministic simulator on real SFO geometry runs every scenario. Fixed FAA-cited checks decide PASS or BLOCK. No model decides.</div>
+    <div class="card"><b>4. Block or deploy</b>Unsafe means blocked and rolled back, with a phone call to ops. Safe means deployed to the fleet. Every verdict is hashed and reproducible.</div>
+  </div>
+  <h2>What it found</h2>
+  <p>Across live runs SubQ found real bugs that hand-written tests missed: a tractor run over by a pushback while waiting, one too slow to leave a jet-blast zone when a beacon lit,
+  debris blocking the route, and a 3.47 m crew near-miss against a 3.5 m limit. It also found a jet-blast flaw in the <i>already approved</i> controller.
+  On mutation testing, SubQ's scenarios raise the catch rate from 56% (built-in tests) to 89% with 0 false blocks. A diff-only AI review rated the genuinely safe fix as unsafe (P(safe) = 0.055).</p>
+  <h2>The agent crew</h2>
+  <table><tr><th>agent</th><th>model</th><th>job</th></tr>
+    <tr><td>subq-redteam</td><td>SubQ subq-preview</td><td>long-horizon red team with full trace memory</td></tr>
+    <tr><td>subq-improve</td><td>SubQ subq-preview</td><td>grows the scenario library, adopted only if held-out results improve</td></tr>
+    <tr><td>snap-*</td><td>SubQ Snap 1.1</td><td>reads about 370k tokens of raw traces, triages severity, filters realism, diff-only baseline</td></tr>
+    <tr><td>meta-*</td><td>Meta Muse Spark</td><td>writes updates and describes violation frames</td></tr>
+    <tr><td>judge</td><td>Python</td><td>the only thing that decides PASS or BLOCK</td></tr></table>
+  <h2>Real vs simulated</h2>
+  <p><b>Real:</b> SFO airport geometry (OpenStreetMap contributors, ODbL), FAA AC 150/5210-20A rules and citations, and aircraft dimensions (FAA Aircraft Characteristics Database).
+  <b>Approximate:</b> engine positions and jet-blast lengths. <b>Example values:</b> speed limits and clearances (the FAA leaves them to the airport operator).
+  <b>Simulated:</b> tractors, aircraft schedules, crew, fog and GPS noise.</p>
+  <p style="color:var(--muted);font-size:13px">Built at AIE Code Summit 2026, "Trust but Verify" track. Code: github.com/roshni2020/airguard</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// 3D hero: an aircraft at a stand, its jet-blast zone, and an autonomous tractor driving around it
+const el = document.getElementById('hero'), R = new THREE.WebGLRenderer({ antialias: true });
+R.setPixelRatio(Math.min(devicePixelRatio, 2)); el.prepend(R.domElement);
+const S = new THREE.Scene(); S.background = new THREE.Color(0x0b0e13); S.fog = new THREE.Fog(0x0b0e13, 90, 260);
+const C = new THREE.PerspectiveCamera(40, 1, 1, 1000);
+S.add(new THREE.HemisphereLight(0xdde6f0, 0x10141a, 0.9)); const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(-60, 120, 80); S.add(sun);
+const g = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshLambertMaterial({ color: 0x2b3139 })); g.rotation.x = -Math.PI / 2; S.add(g);
+const W = new THREE.MeshLambertMaterial({ color: 0xe6edf3 }), plane = new THREE.Group();
+const fus = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 1.8, 38, 18), W); fus.rotation.z = Math.PI / 2; fus.position.set(19, 3.6, 0); plane.add(fus);
+const nose = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), W); nose.position.set(0, 3.6, 0); plane.add(nose);
+const wing = new THREE.Mesh(new THREE.BoxGeometry(5, 0.5, 36), W); wing.position.set(17, 2.6, 0); plane.add(wing);
+const tail = new THREE.Mesh(new THREE.BoxGeometry(4, 0.4, 12), W); tail.position.set(36, 4, 0); plane.add(tail);
+const fin = new THREE.Mesh(new THREE.BoxGeometry(5, 7, 0.5), W); fin.position.set(35, 8, 0); plane.add(fin);
+[-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 4, 12), new THREE.MeshLambertMaterial({ color: 0x8b949e })); e.rotation.z = Math.PI / 2; e.position.set(12, 1.3, s * 5.75); plane.add(e); });
+const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.8, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff2020 })); beacon.position.set(16, 6.2, 0); plane.add(beacon);
+const blast = new THREE.Mesh(new THREE.PlaneGeometry(60, 31.5), new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: .32, side: THREE.DoubleSide, depthWrite: false }));
+blast.rotation.x = -Math.PI / 2; blast.position.set(42, 0.3, 0); plane.add(blast); S.add(plane);
+const tug = new THREE.Group(); const tb = new THREE.Mesh(new THREE.BoxGeometry(4, 2.2, 2.4), new THREE.MeshLambertMaterial({ color: 0x2ea043 })); tb.position.y = 1.3; tug.add(tb); S.add(tug);
+const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2, 2.2), new THREE.MeshLambertMaterial({ color: 0x6e7681 })); c.position.y = 1.1; S.add(c); return c; });
+const path = t => { const a = t * 0.25; return new THREE.Vector3(20 + Math.cos(a) * 55, 0, Math.sin(a) * 30 - 32); };   // loop that stays clear of the blast
+function resize() { const w = el.clientWidth, h = el.clientHeight; R.setSize(w, h); C.aspect = w / h; C.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+(function loop(now) { requestAnimationFrame(loop); const t = now / 1000;
+  C.position.set(20 + Math.cos(t * 0.08) * 95, 48, Math.sin(t * 0.08) * 95); C.lookAt(20, 0, 0);
+  const on = Math.floor(t / 6) % 2; beacon.visible = on && Math.floor(t * 2.2) % 2; blast.visible = !!on;
+  const p = path(t), q = path(t + 0.05); tug.position.copy(p); tug.lookAt(q);
+  carts.forEach((c, k) => { c.position.copy(path(t - 0.12 * (k + 1))); c.position.y = 1.1; });
+  R.render(S, C); })(performance.now());
+</script>
+</body>
+</html>

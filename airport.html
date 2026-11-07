@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirGuard SFO Fleet</title>
+<style>
+  :root { --bg:#0b0e13; --panel:rgba(18,22,29,.92); --line:#28303b; --text:#e6edf3; --muted:#8b949e;
+          --ok:#3fb950; --bad:#f85149; --warn:#d29922; --accent:#58a6ff; --bot:#2ea043; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:13px/1.45 system-ui, sans-serif; overflow:hidden; }
+  #c { position:fixed; inset:0; }
+  .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:8px; backdrop-filter:blur(6px); }
+  #top { left:12px; top:12px; right:352px; display:flex; align-items:center; gap:14px; padding:8px 12px; flex-wrap:wrap; }
+  #top h1 { font-size:15px; margin:0; letter-spacing:.02em; } #top h1 b { color:var(--accent); }
+  #clock { font:600 18px ui-monospace, Consolas, monospace; min-width:92px; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .seg button { background:transparent; color:var(--text); border:0; padding:5px 10px; font:inherit; cursor:pointer; }
+  .seg button.on { background:#1f6feb; } .seg button:hover:not(.on) { background:#21262d; }
+  #badge { margin-left:auto; font-size:12px; color:var(--muted); } #badge b { color:var(--ok); }
+  #side { right:12px; top:12px; bottom:12px; width:328px; display:flex; flex-direction:column; overflow:hidden; }
+  #side h2 { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:12px 14px 6px; }
+  #stats { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:0 14px; }
+  .stat { background:#161b22; border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
+  .stat b { display:block; font-size:18px; } .stat span { font-size:10px; color:var(--muted); text-transform:uppercase; }
+  #bots { overflow-y:auto; max-height:34vh; padding:0 8px; }
+  .bot { display:grid; grid-template-columns:34px 1fr auto; gap:6px; align-items:center; padding:4px 6px; border-radius:5px; cursor:pointer; }
+  .bot:hover { background:#1c222b; } .bot.sel { background:#1f2a3a; outline:1px solid var(--accent); }
+  .dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:4px; }
+  .muted { color:var(--muted); } .mono { font-family:ui-monospace, Consolas, monospace; font-size:11px; }
+  #feed { flex:1; overflow-y:auto; padding:0 14px 12px; font-size:12px; }
+  .ev { padding:3px 0; border-bottom:1px solid #1c222b; } .ev .t { color:var(--muted); font-family:ui-monospace, Consolas, monospace; margin-right:6px; }
+  .ev.bad { color:#ffa198; } .ev.beacon { color:#ffc04d; } .ev.push { color:#ff8c1a; } .ev.deliver { color:#7ee787; }
+  #legend { left:12px; bottom:12px; padding:6px 10px; font-size:11px; color:var(--muted); }
+  #legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin:0 4px 0 10px; vertical-align:-1px; }
+  #err { position:fixed; inset:0; display:none; align-items:center; justify-content:center; color:var(--muted); text-align:center; padding:40px; }
+  @media (max-width: 760px) { #side { top:auto; height:42vh; left:12px; width:auto; } #top { right:12px; } }
+</style>
+</head>
+<body>
+<nav style="position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:20;display:flex;gap:14px;padding:6px 14px;background:rgba(18,22,29,.92);border:1px solid #28303b;border-radius:8px;font:12px system-ui"><a href="about.html" style="color:#8b949e;text-decoration:none">About</a><a href="airport.html" style="color:#8b949e;text-decoration:none">Fleet 3D</a><a href="viewer.html#out/replay_tug_v3_fixed.js" style="color:#8b949e;text-decoration:none">Gate evidence</a><a href="agents.html" style="color:#8b949e;text-decoration:none">Agents</a></nav>
+<canvas id="c"></canvas>
+<div id="top" class="panel">
+  <h1><b>AirGuard</b> &middot; SFO autonomous baggage fleet</h1>
+  <span id="clock">08:00:00</span>
+  <div class="seg" id="speed"><button data-s="1">1x</button><button data-s="5" class="on">5x</button><button data-s="20">20x</button></div>
+  <div class="seg"><button id="play" class="on">Pause</button></div>
+  <div class="seg" id="cams"><button data-c="overview" class="on">Overview</button><button data-c="piers">A/B piers</button><button data-c="follow">Follow bot</button></div>
+  <span id="badge"></span><a href="viewer.html#out/replay_tug_v3_fixed.js" style="color:var(--accent);font-size:12px">gate evidence &rarr;</a>
+</div>
+<div id="side" class="panel">
+  <h2>Fleet</h2><div id="stats"></div>
+  <h2>Bots (click to follow)</h2><div id="bots"></div>
+  <h2>Live events</h2><div id="feed"></div>
+</div>
+<div id="legend" class="panel"><i style="background:#2ea043"></i>tractor<i style="background:#e6edf3"></i>aircraft<i style="background:#ffc04d"></i>beacon on<i style="background:#ff6a1a"></i>jet blast live<i style="background:#bc8cff"></i>crew<i style="background:#f85149"></i>safety finding<span style="margin-left:10px">Map &copy; OpenStreetMap contributors (ODbL) &middot; fleet, schedules, crew simulated</span></div>
+<div id="err"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
+<script>
+const s = document.createElement('script');
+s.src = 'out/airport_replay.js';
+s.onload = () => start(window.AIRPORT);
+s.onerror = () => { const e = document.getElementById('err'); e.style.display = 'flex'; e.textContent = 'Run "py fleet.py" first to create out/airport_replay.js'; };
+document.head.appendChild(s);
+
+function start(D) {
+  const $ = id => document.getElementById(id);
+  const V = (x, y, h = 0) => new THREE.Vector3(x, h, -y);
+  const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b0e13);
+  scene.fog = new THREE.Fog(0x0b0e13, 3500, 9000);
+  const camera = new THREE.PerspectiveCamera(45, 1, 2, 20000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.maxPolarAngle = Math.PI * 0.47;
+  scene.add(new THREE.HemisphereLight(0xcfd8e3, 0x10141a, 0.85));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-1500, 2500, 1200); scene.add(sun);
+
+  // ---------- static airport (merged geometries: one draw call per layer) ----------
+  const merge = gs => THREE.BufferGeometryUtils.mergeBufferGeometries(gs.filter(Boolean), false);
+  const flatGeom = (poly, h) => { const g = new THREE.ShapeGeometry(new THREE.Shape(poly.map(p => new THREE.Vector2(p[0], p[1]))));
+                                  g.rotateX(-Math.PI / 2); g.translate(0, h, 0); return g; };
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000), new THREE.MeshLambertMaterial({ color: 0x131a14 }));
+  ground.rotation.x = -Math.PI / 2; ground.position.y = -0.5; scene.add(ground);
+  scene.add(new THREE.Mesh(merge(D.map.aprons.map(p => flatGeom(p, 0))), new THREE.MeshLambertMaterial({ color: 0x3a414c })));
+  const ribbons = (lines, width, h) => merge(lines.map(pts => {
+    const pos = [], idx = []; const w = width / 2;
+    pts.forEach((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = -(b[1] - a[1]) / L * w, ny = (b[0] - a[0]) / L * w;
+      pos.push(p[0] + nx, h, -(p[1] + ny), p[0] - nx, h, -(p[1] - ny));
+      if (i) { const k = 2 * i; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); } });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g; }));
+  D.map.runways.forEach(r => {
+    scene.add(new THREE.Mesh(ribbons([r.pts], r.width * 0.3048 > 30 ? r.width * 0.3048 : r.width, 0.15), new THREE.MeshLambertMaterial({ color: 0x24272c, side: THREE.DoubleSide })));
+  });
+  scene.add(new THREE.Mesh(ribbons(D.map.runways.map(r => r.pts), 1.2, 0.3), new THREE.MeshBasicMaterial({ color: 0xe6edf3, side: THREE.DoubleSide })));
+  scene.add(new THREE.Mesh(ribbons(D.map.taxiways, 1.0, 0.2), new THREE.MeshBasicMaterial({ color: 0xd9b44a, side: THREE.DoubleSide })));
+  scene.add(new THREE.Mesh(ribbons(D.map.service, 6, 0.1), new THREE.MeshLambertMaterial({ color: 0x4a525e, side: THREE.DoubleSide })));
+  const bld = (list, color) => { const gs = list.map(b => { try { const g = new THREE.ExtrudeGeometry(new THREE.Shape(b.pts.map(p => new THREE.Vector2(p[0], p[1]))), { depth: b.h, bevelEnabled: false });
+      g.rotateX(-Math.PI / 2); return g; } catch (e) { return null; } }); const m = merge(gs); if (m) scene.add(new THREE.Mesh(m, new THREE.MeshLambertMaterial({ color }))); };
+  bld(D.map.buildings.filter(b => b.terminal || b.h > 12), 0x7d8ea5);
+  bld(D.map.buildings.filter(b => !(b.terminal || b.h > 12)), 0x4f5966);
+  scene.add(new THREE.Mesh(ribbons(D.map.jet_bridges, 3.5, 5), new THREE.MeshLambertMaterial({ color: 0x9aa7b8, side: THREE.DoubleSide })));
+  const label = (text, color, scale = 1) => { const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+    const x = c.getContext('2d'); x.font = 'bold 34px system-ui'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 32);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true })); sp.scale.set(40 * scale, 10 * scale, 1); return sp; };
+  D.map.runways.forEach(r => { if (r.ref) { const p = r.pts[0]; const l = label(r.ref, '#c9d1d9', 2.2); l.position.copy(V(p[0], p[1], 30)); scene.add(l); } });
+  Object.entries(D.map.stands).forEach(([k, p]) => { const l = label(k, '#8b949e', 0.55); l.position.copy(V(p[0], p[1], 9)); scene.add(l); });
+
+  // ---------- aircraft ----------
+  const white = new THREE.MeshLambertMaterial({ color: 0xe6edf3 });
+  const engMat = new THREE.MeshLambertMaterial({ color: 0x8b949e });
+  const stateAt = (a, t) => { let s = 'parked'; for (const e of a.events) if (e.t <= t) s = e.state; return s; };
+  const pushAt = (a, t) => { const e = a.events.find(e => e.state === 'pushback'); return !e || t < e.t ? 0 : Math.min(a.push, t - e.t); };
+  const planes = D.aircraft.map(a => {
+    const g = new THREE.Group(), L = a.length_m, W = a.wingspan_m, big = L > 60, r = big ? 3.1 : 2.0, h = big ? 4.8 : 3.4;
+    const fus = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, L, 14), white); fus.rotation.z = Math.PI / 2; fus.position.set(L / 2, h, 0); g.add(fus);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 8), white); nose.position.set(0, h, 0); g.add(nose);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(L * 0.14, 0.6, W), white); wing.position.set(L * 0.45, h - 1, 0); g.add(wing);
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(L * 0.1, 0.5, W * 0.33), white); tail.position.set(L * 0.94, h, 0); g.add(tail);
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(L * 0.12, big ? 11 : 7, 0.6), white); fin.position.set(L * 0.92, h + (big ? 6 : 4), 0); g.add(fin);
+    [-1, 1].forEach(sd => { const e = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.55, r * 0.55, big ? 6 : 4, 10), engMat); e.rotation.z = Math.PI / 2;
+      e.position.set(a.eng.x, h - 2.3, sd * a.eng.y); g.add(e); });
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(big ? 1.5 : 1.1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff2020 }));
+    beacon.position.set(L * 0.4, h + r + 0.4, 0); g.add(beacon);
+    const hw = a.eng.y + 10;
+    const blast = new THREE.Mesh(new THREE.PlaneGeometry(a.blast, 2 * hw), new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: .35, depthWrite: false, side: THREE.DoubleSide }));
+    blast.rotation.x = -Math.PI / 2; blast.position.set(a.eng.x + a.blast / 2, 0.5, 0); g.add(blast);
+    g.rotation.y = Math.atan2(a.u[1], a.u[0]);   // local +x = nose->tail
+    scene.add(g);
+    return { a, g, beacon, blast, last: null };
+  });
+
+  // ---------- bots + crew ----------
+  const PHASE = ['idle at terminal', 'driving to stand', 'loading bags', 'returning', 'unloading'];
+  const PCOL = ['#8b949e', '#2ea043', '#58a6ff', '#a371f7', '#58a6ff'];
+  const bots = D.frames[0].b.map((_, k) => {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(4, 2.2, 2.4), new THREE.MeshLambertMaterial({ color: 0x2ea043 })); body.position.y = 1.3; g.add(body);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 2.2), new THREE.MeshLambertMaterial({ color: 0x1b6b2a })); cab.position.set(-0.8, 2.9, 0); g.add(cab);
+    const tag = label('B' + k, '#7ee787', 0.45); tag.position.y = 7; g.add(tag);
+    scene.add(g);
+    const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2, 2.2), new THREE.MeshLambertMaterial({ color: 0x6e7681 })); c.position.y = 1.1; scene.add(c); return c; });
+    return { g, carts };
+  });
+  const crewMat = new THREE.MeshLambertMaterial({ color: 0xbc8cff });
+  const crew = D.frames[0].c.map(() => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.9, 8), crewMat); scene.add(m); return m; });
+  const vmarks = D.violations.map(v => { const m = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 26, 8), new THREE.MeshBasicMaterial({ color: 0xf85149 }));
+    m.position.copy(V(v.x, v.y, 13)); m.visible = false; scene.add(m); return m; });
+
+  // ---------- events timeline (aircraft states, jobs, findings) ----------
+  const events = [];
+  D.aircraft.forEach(a => a.events.forEach(e => events.push({ t: e.t, cls: e.state === 'beacon_on' ? 'beacon' : e.state === 'gone' ? '' : 'push',
+    text: `${a.stand} ${a.type}: ${e.state.replace('_', ' ')}` })));
+  D.jobs.forEach((js, k) => js.forEach(j => events.push({ t: j.t, cls: j.kind === 'deliver' ? 'deliver' : '', text: `B${k} ${j.kind === 'deliver' ? 'dispatched to' : 'returning from'} ${j.stand}` })));
+  D.violations.forEach(v => events.push({ t: v.t, cls: 'bad', text: `B${v.bot} ${v.rule.replace(/_/g, ' ')} (${typeof v.measured === 'number' ? v.measured.toFixed(1) : v.measured} vs ${v.limit})` }));
+  events.sort((a, b) => a.t - b.t);
+
+  // ---------- UI ----------
+  const M = D.meta;
+  $('badge').innerHTML = `controller <b>${M.controller.split('/').pop()}</b> &middot; approved by the AirGuard gate`;
+  const T = M.seconds, dtF = D.frames[1].t - D.frames[0].t;
+  let t = 0, speed = 5, playing = true, follow = null, nextEv = 0, last = performance.now();
+  const botList = $('bots');
+  bots.forEach((_, k) => { const d = document.createElement('div'); d.className = 'bot'; d.innerHTML = `<b>B${k}</b><span class="st muted"></span><span class="mono done"></span>`;
+    d.onclick = () => { follow = follow === k ? null : k; setCam(follow === null ? 'overview' : 'follow'); }; botList.appendChild(d); });
+  const fmtClock = s => { const x = 8 * 3600 + Math.floor(s); return [x / 3600 | 0, (x / 60 | 0) % 60, x % 60].map(n => String(n).padStart(2, '0')).join(':'); };
+  document.querySelectorAll('#speed button').forEach(b => b.onclick = () => { speed = +b.dataset.s; document.querySelectorAll('#speed button').forEach(x => x.classList.toggle('on', x === b)); });
+  $('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; };
+  function setCam(c) {
+    document.querySelectorAll('#cams button').forEach(x => x.classList.toggle('on', x.dataset.c === c));
+    if (c === 'overview') { follow = null; controls.target.set(300, 0, -600); camera.position.set(-1400, 2200, 1600); }
+    if (c === 'piers') { follow = null; controls.target.set(80, 0, 40); camera.position.set(-260, 330, 380); }
+    if (c === 'follow') { if (follow === null) follow = 0; const f = frameAt(t).b[follow]; controls.target.copy(V(f[0], f[1])); camera.position.copy(V(f[0] - 90, f[1] - 90, 80)); }
+    document.querySelectorAll('.bot').forEach((d, k) => d.classList.toggle('sel', k === follow));
+  }
+  document.querySelectorAll('#cams button').forEach(b => b.onclick = () => setCam(b.dataset.c));
+  const frameAt = tt => D.frames[Math.min(D.frames.length - 1, Math.floor(tt / dtF))];
+
+  function update() {
+    const i = Math.min(D.frames.length - 2, Math.floor(t / dtF)), f0 = D.frames[i], f1 = D.frames[i + 1], w = Math.min(1, (t - f0.t) / dtF);
+    const blink = Math.floor(performance.now() / 450) % 2;
+    planes.forEach(p => { const st = stateAt(p.a, t), off = pushAt(p.a, t);
+      p.g.visible = st !== 'gone';
+      p.g.position.copy(V(p.a.nose[0] + off * p.a.u[0], p.a.nose[1] + off * p.a.u[1]));
+      p.beacon.visible = st !== 'parked' && blink;
+      p.blast.visible = st !== 'parked';
+      p.blast.material.color.setHex(st === 'beacon_on' ? 0xffc04d : 0xff6a1a); p.blast.material.opacity = st === 'beacon_on' ? 0.2 : 0.38; });
+    let moving = 0;
+    bots.forEach((b, k) => { const a = f0.b[k], c = f1.b[k];
+      const x = a[0] + (c[0] - a[0]) * w, y = a[1] + (c[1] - a[1]) * w;
+      let dh = c[2] - a[2]; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
+      b.g.position.copy(V(x, y)); b.g.rotation.y = a[2] + dh * w; if (a[3] > 0.3) moving++;
+      b.carts.forEach((cart, n) => { const q = D.frames[Math.max(0, i - 2 * (n + 1))].b[k]; cart.position.set(q[0], 1.1, -q[1]); }); });
+    crew.forEach((m, n) => { const a = f0.c[n], c = f1.c[n]; m.position.copy(V(a[0] + (c[0] - a[0]) * w, a[1] + (c[1] - a[1]) * w, 1)); });
+    vmarks.forEach((m, n) => m.visible = D.violations[n].t <= t);
+    if (follow !== null) { const p = bots[follow].g.position, d = camera.position.clone().sub(controls.target); controls.target.lerp(p, 0.15); camera.position.copy(controls.target).add(d); }
+    // feed + panel
+    while (nextEv < events.length && events[nextEv].t <= t) { const e = events[nextEv++]; const d = document.createElement('div');
+      d.className = 'ev ' + e.cls; d.innerHTML = `<span class="t">${fmtClock(e.t)}</span>${e.text}`; $('feed').prepend(d); }
+    $('clock').textContent = fmtClock(t);
+    const done = D.jobs.map(js => js.filter(j => j.kind === 'return' && j.t <= t).length);
+    const active = D.aircraft.filter(a => !['parked', 'gone'].includes(stateAt(a, t))).length;
+    const found = D.violations.filter(v => v.t <= t).length;
+    $('stats').innerHTML = `<div class="stat"><b>${moving}/${bots.length}</b><span>bots moving</span></div>
+      <div class="stat"><b>${done.reduce((s, n) => s + n, 0)}</b><span>stands served</span></div>
+      <div class="stat"><b>${D.aircraft.length}</b><span>aircraft</span></div>
+      <div class="stat"><b style="color:${active ? 'var(--warn)' : 'inherit'}">${active}</b><span>engines / pushback</span></div>
+      <div class="stat"><b>${Object.keys(D.map.stands).length}</b><span>real stands</span></div>
+      <div class="stat"><b style="color:${found ? 'var(--bad)' : 'var(--ok)'}">${found}</b><span>safety findings</span></div>`;
+    document.querySelectorAll('.bot').forEach((d, k) => { const ph = f0.b[k][4];
+      d.querySelector('.st').innerHTML = `<span class="dot" style="background:${PCOL[ph]}"></span>${PHASE[ph]}${f0.b[k][3] < 0.3 && (ph === 1 || ph === 3) ? ' <span style="color:var(--warn)">(holding)</span>' : ''}`;
+      d.querySelector('.done').textContent = `${f0.b[k][3].toFixed(1)} m/s`; });
+  }
+  function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+  addEventListener('resize', resize); resize(); setCam('piers'); update();
+  let ui = 0;
+  (function loop(now) {
+    requestAnimationFrame(loop);
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    if (playing) { t += dt * speed; if (t >= T - dtF) { t = 0; nextEv = 0; $('feed').innerHTML = ''; } }
+    if (++ui % 2 === 0 || !playing) update();
+    controls.update(); renderer.render(scene, camera);
+  })(performance.now());
+}
+</script>
+</body>
+</html>
