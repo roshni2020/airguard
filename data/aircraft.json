@@ -1,0 +1,10 @@
+{
+  "_sources": {
+    "wingspan_m, length_m": "FAA Aircraft Characteristics Database (faa.gov/airports/engineering/aircraft_char_database)",
+    "engines, jet_blast_m": "APPROXIMATE - read off manufacturer Airport Planning documents (Airbus AC / Boeing 7x7 Airplane Characteristics for Airport Planning). Engine x is measured from the nose; y is lateral offset of the outboard engine. jet_blast_m is the approximate length behind the engine of the ~56 km/h (35 mph) exhaust-velocity contour. Not certified values."
+  },
+  "A320":      {"wingspan_m": 35.8,  "length_m": 37.57, "engines": [{"x": 12.0, "y": 5.75}], "jet_blast_m": {"idle": 60,  "breakaway": 150}},
+  "B737-800":  {"wingspan_m": 35.8,  "length_m": 39.47, "engines": [{"x": 13.0, "y": 4.9}],  "jet_blast_m": {"idle": 60,  "breakaway": 160}},
+  "B777-300ER":{"wingspan_m": 64.8,  "length_m": 73.86, "engines": [{"x": 29.0, "y": 9.6}],  "jet_blast_m": {"idle": 120, "breakaway": 300}},
+  "A350-900":  {"wingspan_m": 64.75, "length_m": 66.8,  "engines": [{"x": 26.0, "y": 9.4}],  "jet_blast_m": {"idle": 110, "breakaway": 280}}
+}

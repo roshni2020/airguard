@@ -1,0 +1,4 @@
+.rocketride/
+.env
+__pycache__/
+out/tug_standstill*

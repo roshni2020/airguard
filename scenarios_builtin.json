@@ -1,0 +1,23 @@
+[
+ {"name": "nominal", "seed": 1, "destination": "A8", "deadline": 240,
+  "aircraft": [{"stand": "A7", "type": "B777-300ER"}, {"stand": "A6", "type": "A320"},
+               {"stand": "B16", "type": "B777-300ER"}, {"stand": "B20", "type": "A320"}]},
+ {"name": "engine_start_adjacent", "seed": 2, "destination": "A8", "deadline": 240,
+  "aircraft": [{"stand": "A7", "type": "B777-300ER", "push_dist": 40,
+                "events": [{"t": 5, "state": "beacon_on"}, {"t": 15, "state": "engines_running"},
+                           {"t": 60, "state": "pushback"}, {"t": 120, "state": "gone"}]}]},
+ {"name": "fog", "seed": 3, "destination": "A8", "deadline": 240, "visibility": 80,
+  "aircraft": [{"stand": "A7", "type": "B777-300ER"}]},
+ {"name": "crew_crossing", "seed": 4, "destination": "A8", "deadline": 240,
+  "aircraft": [{"stand": "A7", "type": "A320"}],
+  "obstacles": [{"kind": "person", "path": [[111, 25], [151, 5]], "speed": 1.2, "t0": 10}]},
+ {"name": "pushback_across_path", "seed": 5, "destination": "A8", "deadline": 240,
+  "aircraft": [{"stand": "A7", "type": "A320", "push_dist": 40,
+                "events": [{"t": 12, "state": "beacon_on"}, {"t": 15, "state": "pushback"},
+                           {"t": 75, "state": "gone"}]}]},
+ {"name": "gps_drift_engine_start", "seed": 6, "destination": "A8", "deadline": 240, "gps_noise": 2.0,
+  "aircraft": [{"stand": "A7", "type": "B777-300ER",
+                "events": [{"t": 10, "state": "beacon_on"}, {"t": 24, "state": "engines_running"},
+                           {"t": 90, "state": "gone"}]}],
+  "obstacles": [{"kind": "debris", "path": [[108, -48]], "speed": 0}]}
+]
