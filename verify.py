@@ -168,7 +168,7 @@ def usage_summary():
     return {"calls": list(llm.USAGE), "by_model": by}
 
 
-def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True):
+def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both", notify_pass=False):
     llm.USAGE.clear()
     cand_path = Path(cand_path)
     rel = cand_path.resolve().relative_to(ROOT).as_posix()
@@ -341,8 +341,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
                                            "score": round(v_sev["score"], 2)})
             print(f"  snap triage: page_ops_now={triage['page_ops_now']}, worst="
                   f"{max(triage['severity'], key=lambda s: s['score'])['label']}")
-    if send_alert:
-        alert.send({**body, "deployed_after": body_dep, "triage": triage})
+    alert_res = alert.alert({**body, "deployed_after": body_dep, "triage": triage}, alert_mode, notify_pass)
     usage = usage_summary()          # outside verdict_hash: latency varies run to run
     builtin_names = {b["name"] for b in builtin}
     runs = [{"round": i, "source": "builtin" if r["scenario"]["name"] in builtin_names else "subq",
@@ -352,7 +351,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
     out = ROOT / "verdicts" / f"{cand_path.stem}_{time.strftime('%Y%m%d_%H%M%S')}.json"
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps({**body, "written_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                               "deployed_after": body_dep, "usage": usage, "triage": triage}, indent=1))
+                               "deployed_after": body_dep, "usage": usage, "triage": triage,
+                               "alert": alert_res}, indent=1))
     print(f"\n{verdict}  {rel}   verdict_hash={body['verdict_hash'][:16]}  ({out.name})")
     for v in flat[:5]:
         print(f"  {v['rule']:20} scenario={v['scenario']} t={v['t']}s at ({v['x']},{v['y']}) "
@@ -369,15 +369,21 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("candidate")
+    ap.add_argument("candidate", nargs="?")
+    ap.add_argument("--candidate", dest="candidate_opt")
     ap.add_argument("--rounds", type=int, default=4)
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--gif", action="store_true")
     ap.add_argument("--no-deploy", action="store_true")
     ap.add_argument("--fuzz", type=int, default=0, help="add N seeded stress scenarios (differential)")
-    ap.add_argument("--no-alert", action="store_true")
+    ap.add_argument("--alert", choices=["call", "sms", "both", "off"], default="both")
+    ap.add_argument("--no-alert", action="store_true", help="same as --alert off")
+    ap.add_argument("--notify-pass", action="store_true", help="SMS on PASS too")
     a = ap.parse_args()
     if a.offline:
         llm.OFFLINE = True
-    b = verify(a.candidate, a.rounds, a.gif, not a.no_deploy, a.fuzz, not a.no_alert)
+    cand = a.candidate_opt or a.candidate
+    if not cand:
+        ap.error("candidate required (positional or --candidate)")
+    b = verify(cand, a.rounds, a.gif, not a.no_deploy, a.fuzz, "off" if a.no_alert else a.alert, a.notify_pass)
     sys.exit(0 if b["verdict"] == "PASS" else 1)

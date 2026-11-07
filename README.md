@@ -64,13 +64,23 @@ jet-blast zones, pushback, crew, debris, fog, and red pillars at each violation.
 the verdict, the **SubQ round log (context size and tokens per round)**, the stress comparison, **model
 usage metrics** and the violations with FAA citations.
 
-## Alerts on BLOCK
+## Phone alerts
 
-`alert.py` places a **Twilio voice call** (text-to-speech, plain REST through `requests`) to `ALERT_TO`
-from `TWILIO_FROM`. The call says which update was blocked, which rule (with the FAA citation), the gate, and
-that the approved controller stayed deployed. If Twilio is not configured it falls back to Telegram
-(`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`). If nothing is configured it logs "alert skipped". `--no-alert`
-disables it.
+On a BLOCK, after the rollback, `alert.py` texts and phones you through the Twilio REST API (plain
+`requests`, no SDK). The message names the blocked update, the rule and FAA citation, the stand, the time,
+and the controller it rolled back to, for example *"AirGuard blocked update tug_v2_ai. Rule jet_blast_zone, FAA
+AC 150/5210-20A App. B 2.2.1(c) avoid jet blast: violation near stand A7 at t=23 seconds ... Rolled back
+to tug_v1. Fleet is safe."* The call reads the message twice.
+
+- Env vars (in `.env`, which is gitignored): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`, `ALERT_TO`.
+  If any is missing, the gate prints `alert skipped: twilio not configured` and carries on.
+- `--alert call|sms|both|off` (default `both`). `--notify-pass` also texts on PASS. With `both`,
+  SubQ Snap triage only picks the channel (minor means SMS only). If triage fails, both are sent.
+- Alerts are never cached, so an offline replay of the gate still rings the phone. The verdict JSON stores
+  only the message/call SIDs and status under `alert`, never credentials.
+- Twilio trial limits: it can only call or text **verified** numbers, and a trial notice plays before the
+  message (that is why the message is read twice).
+- Test: `py alert.py --test` sends one SMS and one call saying "AirGuard test alert".
 
 ## Model usage metrics
 
@@ -83,7 +93,7 @@ and the viewer shows them.
 ```
 py -m pip install requests matplotlib
 py selfcheck.py                              # offline: v1 PASS, v2 BLOCK (jet blast + fog), v3 PASS, stand-still BLOCK, reproducible
-py verify.py tugs/tug_v2_ai.py --gif         # live SubQ red team (needs SUBQ_API_KEY), --offline = cache only
+py verify.py --candidate tugs/tug_v2_ai.py --alert both   # BLOCK -> rollback -> your phone rings + SMS
 py baseline.py tugs/tug_v3_fixed.py          # diff-only reviewer (SubQ Snap) for contrast
 py meta_implement.py --request "make the route 20% faster" --out tugs/tug_meta_1.py   # needs META_API_KEY
 py verify.py tugs/tug_meta_1.py

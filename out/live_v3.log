@@ -1,16 +1,11 @@
 stress: 1000 scenarios, approved failed 119, candidate failed 92, 13 regressions -> non-inferior
 round 0: 12 scenarios, 0 violations, context 134286 chars
-round 1: 4 scenarios, 0 violations, context 746316 chars
-round 2: 4 scenarios, 1 violations, context 991063 chars
-  snap triage: page_ops_now=0.29, worst=serious
+round 1: 4 scenarios, 0 violations, context 746783 chars
+round 2: 4 scenarios, 0 violations, context 957011 chars
+round 3: 4 scenarios, 0 violations, context 1160182 chars
 
-BLOCK  tugs/tug_v3_fixed.py   verdict_hash=ae70393aca8bc697  (tug_v3_fixed_20261107_143338.json)
-  personnel_clearance  scenario=rt_debris_waypoint_person_loop t=171.1s at (131.6,-1.92) measured=3.47 limit=3.5
-    AC 150/5210-20A App. B 2.2.1(f) yield to passengers
-  vision: The autonomous baggage tractor (green track) is stopped at the red X indicating a personnel_clearance safety violation on the apron taxi lane near B20, immediately adjacent to the active jet-blast zones (orange dashed boxes) of the navy aircraft parked at A7 and A8. This creates an imminent hazard of jet-blast injury, debris strike, and collision due to loss of required separation between the autonomous vehicle/personnel and the aircraft.
-  usage subq-preview: 3 calls (1 cached), 1,021,252 prompt tok, 14,403 completion tok, 1,867,004 prompt chars, 45.12s
-  usage muse-spark-1.2: 1 calls (0 cached), 889 prompt tok, 1,387 completion tok, 138,776 prompt chars, 10.99s
-  usage subq-snap-1.1: 1 calls (0 cached), 1,007 prompt tok, 0 completion tok, 3,392 prompt chars, 1.12s
+PASS  tugs/tug_v3_fixed.py   verdict_hash=a2f7305225034d75  (tug_v3_fixed_20261107_145824.json)
+  usage subq-preview: 4 calls (1 cached), 1,674,228 prompt tok, 5,430 completion tok, 2,991,648 prompt chars, 30.01s
   replay: open viewer.html#out/replay_tug_v3_fixed.js
-  deployed: tugs/tug_v1.py
-exit=1
+  deployed: tugs/tug_v3_fixed.py
+exit=0

@@ -1,0 +1,25 @@
+{
+ "current": {
+  "path": "tugs/tug_v3_fixed.py",
+  "sha256": "3d7e7665090817679b2dfad2bfad8280395095924d982665c4450776df3da148"
+ },
+ "history": [
+  {
+   "path": "tugs/tug_v1.py",
+   "sha256": "5c2b0773706018fab84f2a4405a18226c8384b6a63de09cd09a5495fdcb0eafc",
+   "event": "initial approved baseline (hand-written)"
+  },
+  {
+   "path": "tugs/tug_v2_ai.py",
+   "sha256": "2fd06a14682f0ddef26b1cea6c38afbf98fc42d49bc90aa76851e3ce645cf83a",
+   "event": "BLOCK -> not deployed",
+   "verdict_hash": "7cb35bc36bd7426da732c629a7ff9e4e6b2eda8703b58c555964796fc9b235fd"
+  },
+  {
+   "path": "tugs/tug_v3_fixed.py",
+   "sha256": "3d7e7665090817679b2dfad2bfad8280395095924d982665c4450776df3da148",
+   "event": "PASS -> promoted",
+   "verdict_hash": "a2f7305225034d753b788ff127204e120b4906406ecb61ccb074a1e3c11efa70"
+  }
+ ]
+}

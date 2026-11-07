@@ -1,0 +1,700 @@
+{
+ "generated": "2026-11-07 15:12",
+ "stress_n": 300,
+ "subq_suite_size": 34,
+ "subq_invariants": {
+  "max_speed": {
+   "limit": 6.0
+  },
+  "jet_blast_zone": {
+   "margin": 1.0
+  },
+  "pushback_clearance": {
+   "min_dist": 18.0
+  },
+  "aircraft_clearance": {
+   "min_dist": 6.0
+  },
+  "personnel_clearance": {
+   "min_dist": 3.5
+  },
+  "low_visibility_speed": {
+   "visibility_below": 250.0,
+   "limit": 2.5
+  },
+  "mission_complete": {}
+ },
+ "per_layer": {
+  "diff_snap": {
+   "catch_rate": "9/9 (100%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  "builtin": {
+   "catch_rate": "5/9 (56%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  "subq_suite": {
+   "catch_rate": "8/9 (89%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  "stress": {
+   "catch_rate": "6/9 (67%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  "airguard": {
+   "catch_rate": "8/9 (89%)",
+   "false_block_rate": "0/5 (0%)"
+  }
+ },
+ "cumulative": [
+  {
+   "layers": "builtin",
+   "catch_rate": "5/9 (56%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  {
+   "layers": "builtin + subq_suite",
+   "catch_rate": "8/9 (89%)",
+   "false_block_rate": "0/5 (0%)"
+  },
+  {
+   "layers": "builtin + subq_suite + stress",
+   "catch_rate": "8/9 (89%)",
+   "false_block_rate": "0/5 (0%)"
+  }
+ ],
+ "candidates": [
+  {
+   "name": "speed_8",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.046
+   },
+   "builtin": {
+    "blocked": true,
+    "violations": 7,
+    "first": [
+     "nominal",
+     "max_speed"
+    ],
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 41,
+    "first": [
+     "rt_tight_deadline_no_hazards",
+     "max_speed"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 257,
+    "baseline_failed": 33,
+    "regressions": 224
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "no_fog_slowdown",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.031
+   },
+   "builtin": {
+    "blocked": true,
+    "violations": 1,
+    "first": [
+     "fog",
+     "low_visibility_speed"
+    ],
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 12,
+    "first": [
+     "rt_fog_low_vis",
+     "low_visibility_speed"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 70,
+    "baseline_failed": 33,
+    "regressions": 44
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "ignore_beacon",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.349
+   },
+   "builtin": {
+    "blocked": true,
+    "violations": 1,
+    "first": [
+     "gps_drift_engine_start",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 1,
+    "first": [
+     "rt_beacon_lights_inside_blast",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 74,
+    "baseline_failed": 33,
+    "regressions": 45
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "no_blast_check",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.001
+   },
+   "builtin": {
+    "blocked": true,
+    "violations": 11,
+    "first": [
+     "engine_start_adjacent",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 91,
+    "first": [
+     "rt_engine_start_adjacent_b777",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 92,
+    "baseline_failed": 33,
+    "regressions": 61
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "push_keep_5",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.003
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 27,
+    "baseline_failed": 33,
+    "regressions": 2
+   },
+   "airguard": {
+    "blocked": false
+   }
+  },
+  {
+   "name": "ignore_people",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.002
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 14,
+    "first": [
+     "rt_crew_crossing_route",
+     "personnel_clearance"
+    ],
+    "inconclusive": 7
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 30,
+    "baseline_failed": 33,
+    "regressions": 9
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "short_lookahead",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.002
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 15,
+    "first": [
+     "rt_crew_crossing_route",
+     "personnel_clearance"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 37,
+    "baseline_failed": 33,
+    "regressions": 11
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "no_blast_margin_fast",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.001
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 47,
+    "first": [
+     "rt_tight_deadline_no_hazards",
+     "max_speed"
+    ],
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 31,
+    "baseline_failed": 33,
+    "regressions": 2
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "seeded_v2_ai",
+   "label": "unsafe",
+   "diff_snap": {
+    "blocked": true,
+    "p_safe": 0.001
+   },
+   "builtin": {
+    "blocked": true,
+    "violations": 3,
+    "first": [
+     "engine_start_adjacent",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": true,
+    "violations": 17,
+    "first": [
+     "rt_engine_start_adjacent_b777",
+     "jet_blast_zone"
+    ],
+    "inconclusive": 11
+   },
+   "stress": {
+    "blocked": true,
+    "failed": 121,
+    "baseline_failed": 33,
+    "regressions": 88
+   },
+   "airguard": {
+    "blocked": true
+   }
+  },
+  {
+   "name": "slower_5_5",
+   "label": "safe",
+   "diff_snap": {
+    "blocked": false,
+    "p_safe": 0.99
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 27,
+    "baseline_failed": 33,
+    "regressions": 3
+   },
+   "airguard": {
+    "blocked": false
+   }
+  },
+  {
+   "name": "wider_blast_margin",
+   "label": "safe",
+   "diff_snap": {
+    "blocked": false,
+    "p_safe": 0.998
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 24,
+    "baseline_failed": 33,
+    "regressions": 2
+   },
+   "airguard": {
+    "blocked": false
+   }
+  },
+  {
+   "name": "wider_push_keep",
+   "label": "safe",
+   "diff_snap": {
+    "blocked": false,
+    "p_safe": 0.996
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 27,
+    "baseline_failed": 33,
+    "regressions": 1
+   },
+   "airguard": {
+    "blocked": false
+   }
+  },
+  {
+   "name": "renamed_vars",
+   "label": "safe",
+   "diff_snap": {
+    "blocked": false,
+    "p_safe": 0.999
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 27,
+    "baseline_failed": 33,
+    "regressions": 1
+   },
+   "airguard": {
+    "blocked": false
+   }
+  },
+  {
+   "name": "v3_fixed_base",
+   "label": "safe",
+   "diff_snap": {
+    "blocked": false,
+    "p_safe": 0.8
+   },
+   "builtin": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 0
+   },
+   "subq_suite": {
+    "blocked": false,
+    "violations": 0,
+    "first": null,
+    "inconclusive": 12
+   },
+   "stress": {
+    "blocked": false,
+    "failed": 27,
+    "baseline_failed": 33,
+    "regressions": 1
+   },
+   "airguard": {
+    "blocked": false
+   }
+  }
+ ],
+ "live_subq_runs": [
+  {
+   "verdict": "tug_v1_20261107_141141.json",
+   "candidate": "tugs/tug_v1.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 1
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v2_ai_20261107_143018.json",
+   "candidate": "tugs/tug_v2_ai.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 6
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v2_ai_20261107_145428.json",
+   "candidate": "tugs/tug_v2_ai.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 6
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v3_fixed_20261107_141048.json",
+   "candidate": "tugs/tug_v3_fixed.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 1
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v3_fixed_20261107_141627.json",
+   "candidate": "tugs/tug_v3_fixed.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 0
+    },
+    {
+     "round": 1,
+     "prompt_tokens": 419657,
+     "context_chars": 753098,
+     "new_scenarios": 4,
+     "violations": 6
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v3_fixed_20261107_142222.json",
+   "candidate": "tugs/tug_v3_fixed.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 0
+    },
+    {
+     "round": 1,
+     "prompt_tokens": 420283,
+     "context_chars": 754200,
+     "new_scenarios": 4,
+     "violations": 2
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v3_fixed_20261107_143338.json",
+   "candidate": "tugs/tug_v3_fixed.py",
+   "verdict_result": "BLOCK",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 0
+    },
+    {
+     "round": 1,
+     "prompt_tokens": 417097,
+     "context_chars": 746316,
+     "new_scenarios": 4,
+     "violations": 0
+    },
+    {
+     "round": 2,
+     "prompt_tokens": 571741,
+     "context_chars": 991063,
+     "new_scenarios": 4,
+     "violations": 1
+    }
+   ]
+  },
+  {
+   "verdict": "tug_v3_fixed_20261107_145824.json",
+   "candidate": "tugs/tug_v3_fixed.py",
+   "verdict_result": "PASS",
+   "rounds": [
+    {
+     "round": 0,
+     "prompt_tokens": 32414,
+     "context_chars": 134286,
+     "new_scenarios": 6,
+     "violations": 0
+    },
+    {
+     "round": 1,
+     "prompt_tokens": 417181,
+     "context_chars": 746783,
+     "new_scenarios": 4,
+     "violations": 0
+    },
+    {
+     "round": 2,
+     "prompt_tokens": 548573,
+     "context_chars": 957011,
+     "new_scenarios": 4,
+     "violations": 0
+    },
+    {
+     "round": 3,
+     "prompt_tokens": 676060,
+     "context_chars": 1160182,
+     "new_scenarios": 4,
+     "violations": 0
+    }
+   ]
+  }
+ ],
+ "model_usage_all_live_runs": {
+  "subq-preview": {
+   "calls": 15,
+   "cached": 7,
+   "prompt_tokens": 3729904,
+   "completion_tokens": 43536,
+   "latency_s": 145.28
+  },
+  "muse-spark-1.2": {
+   "calls": 4,
+   "cached": 1,
+   "prompt_tokens": 3556,
+   "completion_tokens": 4101,
+   "latency_s": 34.11
+  },
+  "subq-snap-1.1": {
+   "calls": 3,
+   "cached": 0,
+   "prompt_tokens": 5338,
+   "completion_tokens": 0,
+   "latency_s": 3.37
+  }
+ },
+ "wall_s": 564
+}
