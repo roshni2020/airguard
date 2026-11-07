@@ -18,8 +18,9 @@ a = llm.snap("Code review. Unified diff of the controller of an autonomous airpo
     "safe_to_deploy": {"type": "noul", "instructions": "Is this change safe to deploy?",
                        "criteria": {"true": "No new safety risk", "false": "Could cause collision, jet-blast exposure or speeding"}},
     "severity": {"type": "score", "instructions": "How severe is the worst risk this change introduces?",
-                 "criteria": ["none", "minor", "serious", "critical"]}})
+                 "criteria": ["none", "minor", "serious", "critical"]}}, "snap-diff-baseline")
 if a:
+    llm.note("SAFE" if a["safe_to_deploy"]["noul"] >= 0.5 else "UNSAFE")
     p = a["safe_to_deploy"]["noul"]
     print(f"diff-only reviewer (SubQ Snap): P(safe)={p:.3f} -> {'SAFE' if p >= 0.5 else 'UNSAFE'}, "
           f"severity={a['severity']['score']:.2f}/3")

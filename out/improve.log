@@ -1,0 +1,12 @@
+start v001: train 7/8 escaped ['push_keep_5'] | held-out catch 5/7 (escaped ['push_keep_10', 'blast_margin_0']), false-block 3/6 ['cruise_5_8', 'push_keep_28', 'blast_margin_9']
+iter 1: v002 +6 scenarios | train 7/8 | held-out catch 5/7 -> 5/7, false-block 3/6 -> 3/6 => REJECTED (current stays)
+iter 2: v003 +6 scenarios | train 8/8 | held-out catch 5/7 -> 7/7, false-block 3/6 -> 6/6 => REJECTED (current stays)
+iter 3: v004 +6 scenarios | train 7/8 | held-out catch 5/7 -> 5/7, false-block 3/6 -> 3/6 => REJECTED (current stays)
+
+version   train catch  held-out catch  held-out false-block  status
+v001              7/8             5/7                   3/6  current
+v002              7/8             5/7                   3/6  rejected
+v003              8/8             7/7                   6/6  rejected
+v004              7/8             5/7                   3/6  rejected
+saved out/improve.png; active suite: v001
+exit=0

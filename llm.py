@@ -29,22 +29,47 @@ def key_of(url, model, messages):
 
 
 USAGE = []   # one record per call: model usage metrics (tokens, latency, cache hits)
+RUN = {"run_id": time.strftime("%Y%m%d_%H%M%S") + f"_{os.getpid()}", "verdict_file": None}
+CALLS_LOG = Path(__file__).parent / "out" / "calls.jsonl"
+_flushed = [0]
 
 
-def _log(model, usage, latency, cached, chars):
-    USAGE.append({"model": model, "prompt_tokens": usage.get("prompt_tokens"),
+def _log(model, usage, latency, cached, chars, agent=None, rnd=None, h=None):
+    USAGE.append({"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "run_id": RUN["run_id"], "agent": agent, "round": rnd,
+                  "model": model, "prompt_sha256": h, "prompt_tokens": usage.get("prompt_tokens"),
                   "completion_tokens": usage.get("completion_tokens"),
                   "total_tokens": usage.get("total_tokens"), "prompt_chars": chars,
-                  "latency_s": round(latency, 2), "cached": cached})
+                  "latency_s": round(latency, 2), "cached": cached, "outcome": None})
 
 
-def _call(url, model, key_env, messages, timeout=600):
+def note(outcome):
+    """Callers record a short outcome for the last call ("6 scenarios proposed", "SAFE", ...)."""
+    if USAGE:
+        USAGE[-1]["outcome"] = str(outcome)[:120]
+
+
+def flush_calls():
+    """Append unflushed calls to out/calls.jsonl (hashes + metrics only - never keys or prompts)."""
+    new = USAGE[_flushed[0]:]
+    if new:
+        CALLS_LOG.parent.mkdir(exist_ok=True)
+        with CALLS_LOG.open("a") as f:
+            for u in new:
+                f.write(json.dumps({**u, "verdict_file": RUN["verdict_file"]}) + "\n")
+    _flushed[0] = len(USAGE)
+
+
+import atexit
+atexit.register(flush_calls)
+
+
+def _call(url, model, key_env, messages, timeout=600, agent=None, rnd=None):
     h = key_of(url, model, messages)
     f = CACHE / f"{h}.json"
     chars = len(json.dumps(messages))
     if f.exists():
         r = json.loads(f.read_text())
-        _log(model, r.get("usage", {}), r.get("latency_s", 0), True, chars)
+        _log(model, r.get("usage", {}), r.get("latency_s", 0), True, chars, agent, rnd, h)
         return {"text": r["text"], "usage": r.get("usage", {}), "hash": h, "cached": True}
     key = os.environ.get(key_env)
     if OFFLINE or not key:
@@ -58,24 +83,25 @@ def _call(url, model, key_env, messages, timeout=600):
     j = resp.json()
     out = {"text": j["choices"][0]["message"]["content"], "usage": j.get("usage", {}),
            "latency_s": round(time.time() - t0, 2)}
-    _log(model, out["usage"], out["latency_s"], False, chars)
+    _log(model, out["usage"], out["latency_s"], False, chars, agent, rnd, h)
     CACHE.mkdir(exist_ok=True)
     f.write_text(json.dumps({"model": model, **out}, indent=1))
     return {**out, "hash": h, "cached": False}
 
 
-def subq(messages):
-    return _call(SUBQ_URL, SUBQ_MODEL, "SUBQ_API_KEY", messages)
+def subq(messages, agent="subq-redteam", rnd=None):
+    return _call(SUBQ_URL, SUBQ_MODEL, "SUBQ_API_KEY", messages, agent=agent, rnd=rnd)
 
 
-def meta(messages, image=None):
+def meta(messages, image=None, agent=None, rnd=None):
     if image:
         b64 = base64.b64encode(Path(image).read_bytes()).decode()
         last = messages[-1]
         messages = messages[:-1] + [{"role": last["role"], "content": [
             {"type": "text", "text": last["content"]},
             {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}]}]
-    return _call(META_URL, META_MODEL, "META_API_KEY", messages)
+    return _call(META_URL, META_MODEL, "META_API_KEY", messages,
+                 agent=agent or ("meta-vision" if image else "meta-implement"), rnd=rnd)
 
 
 def extract_json(text):
@@ -104,7 +130,7 @@ SNAP_MODEL = os.environ.get("SUBQ_SNAP_MODEL", "subq-snap-1.1")
 SNAP_URL = SUBQ_URL.rsplit("/chat/completions", 1)[0] + "/systemone"
 
 
-def snap(state, questions):
+def snap(state, questions, agent="snap-triage", rnd=None):
     """SubQ Snap decision model (POST /v1/systemone): named noul/choice/score questions over a
     long `state` -> probabilities. Advisory only - AirGuard never lets it decide pass/fail."""
     body = {"model": SNAP_MODEL, "state": state, "questions": questions}
@@ -112,7 +138,7 @@ def snap(state, questions):
     f = CACHE / f"{h}.json"
     if f.exists():
         r = json.loads(f.read_text())
-        _log(SNAP_MODEL, r.get("usage", {}), r.get("latency_s", 0), True, len(json.dumps(body)))
+        _log(SNAP_MODEL, r.get("usage", {}), r.get("latency_s", 0), True, len(json.dumps(body)), agent, rnd, h)
         return r["answers"]
     key = os.environ.get("SUBQ_API_KEY")
     if OFFLINE or not key:
@@ -125,7 +151,7 @@ def snap(state, questions):
     u = j.get("usage", {})
     usage = {"prompt_tokens": u.get("input_tokens", u.get("prompt_tokens")), "completion_tokens": 0}
     lat = round(time.time() - t0, 2)
-    _log(SNAP_MODEL, usage, lat, False, len(json.dumps(body)))
+    _log(SNAP_MODEL, usage, lat, False, len(json.dumps(body)), agent, rnd, h)
     CACHE.mkdir(exist_ok=True)
     f.write_text(json.dumps({"model": SNAP_MODEL, "answers": j["answers"], "usage": usage, "latency_s": lat}, indent=1))
     return j["answers"]

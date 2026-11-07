@@ -156,6 +156,54 @@ def stress_context(cand_path, dep, fuzz):
     return rep, ctx
 
 
+SNAP_BUDGET_CHARS = 440_000        # numeric traces are ~1.4 chars/token -> ~320k tokens, under Snap's 393,216
+
+
+def snap_screen(all_res):
+    """Large-data cross-check: SubQ Snap reads the COMPLETE per-step traces of every scenario
+    (up to ~300k tokens) and rates each scenario's hazard; we report agreement with the
+    deterministic Python verdict. Advisory only - never changes PASS/BLOCK."""
+    runs = [r for rs in all_res for r in rs][:120]
+    if not runs:
+        return None
+    stride = 1
+    while True:   # full resolution if it fits; otherwise thin every scenario equally (never drop one)
+        blocks = []
+        for i, r in enumerate(runs):
+            rows = trace_csv(r["trace"]).splitlines()
+            blocks.append(f"### s{i} {r['scenario']['name']}\n" + "\n".join([rows[0]] + rows[1::stride]))
+        state = ("Autonomous baggage tractor runs at SFO. Columns: t (s), x, y (m), v (m/s), min_ac (m to nearest "
+                 "aircraft), min_push (m to a pushing-back aircraft), blast (signed m to an ACTIVE jet-blast zone, "
+                 "negative = inside), blast_stand, min_obs (m to nearest person/debris).\n\n" +
+                 (ROOT / "rules/ground_ops.md").read_text() + "\n\n" + "\n\n".join(blocks))
+        if len(state) <= SNAP_BUDGET_CHARS:
+            break
+        stride += 1
+    qs = {f"s{i}": {"type": "noul", "instructions": f"Did the tractor break a safety rule in scenario s{i}?",
+                    "criteria": {"true": "Entered an active jet-blast zone, came closer than the rule limits to an aircraft, "
+                                         "pushback or person, or exceeded a speed limit",
+                                 "false": "Kept every clearance and speed limit"}} for i in range(len(runs))}
+    try:
+        a = llm.snap(state, qs, "snap-screen")
+    except Exception as e:        # advisory: never crash the gate
+        print(f"  snap screen failed: {str(e)[:120]}")
+        return {"error": str(e)[:200]}
+    if not a:
+        return None
+    rows = []
+    for i, r in enumerate(runs):
+        p = a[f"s{i}"]["noul"]
+        safety = [v for v in r["violations"] if v["rule"] != "mission_complete"]
+        rows.append({"scenario": r["scenario"]["name"], "p_violation": round(p, 3), "python_violation": bool(safety)})
+    agree = sum((x["p_violation"] >= 0.5) == x["python_violation"] for x in rows)
+    out = {"scenarios": len(rows), "state_chars": len(state), "trace_stride": stride,
+           "agreement": f"{agree}/{len(rows)}", "missed_by_snap": [x["scenario"] for x in rows if x["python_violation"] and x["p_violation"] < 0.5],
+           "false_alarms": [x["scenario"] for x in rows if not x["python_violation"] and x["p_violation"] >= 0.5], "rows": rows}
+    llm.note(f"agrees with Python on {agree}/{len(rows)}")
+    print(f"  snap screen: read {len(state):,} chars (stride {stride}) of raw traces, agrees with Python on {agree}/{len(rows)} scenarios")
+    return out
+
+
 def usage_summary():
     by = {}
     for u in llm.USAGE:
@@ -168,7 +216,16 @@ def usage_summary():
     return {"calls": list(llm.USAGE), "by_model": by}
 
 
-def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both", notify_pass=False):
+def load_suite():
+    """Active versioned scenario library (suite/current.json -> suite/vNNN.json)."""
+    cur = ROOT / "suite/current.json"
+    if not cur.exists():
+        return None
+    v = json.loads((ROOT / "suite" / (json.loads(cur.read_text())["version"] + ".json")).read_text())
+    return v
+
+
+def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both", notify_pass=False, use_suite=True):
     llm.USAGE.clear()
     cand_path = Path(cand_path)
     rel = cand_path.resolve().relative_to(ROOT).as_posix()
@@ -197,10 +254,12 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": blind}]
 
     log, rejected, all_res, prompt_hashes = [], [], [], []
-    r0 = llm.subq(msgs)
+    r0 = llm.subq(msgs, "subq-redteam", 0)
     spec = llm.extract_json(r0["text"]) if r0 else None
     spec_source = "subq" if isinstance(spec, dict) else "builtin_floor"
-    params, rej = checks.tighten(spec.get("invariants") if spec_source == "subq" else None)
+    suite = load_suite() if use_suite else None
+    base_params = checks.tighten(suite["invariants"])[0] if suite else None
+    params, rej = checks.tighten(spec.get("invariants") if spec_source == "subq" else None, base_params)
     rejected += rej
     new = []
     if spec_source == "subq":
@@ -208,7 +267,10 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
         for i, s in enumerate(spec.get("scenarios", [])[:MAX_SCEN]):
             v = validate_scenario(s, 100 + i)
             (new.append(v) if v else rejected.append(f"invalid scenario #{i}"))
-    scenarios = builtin + new                     # built-in floor scenarios always run
+    if r0:
+        llm.note(f"{len(new)} scenarios proposed" if spec_source == "subq" else "unparseable spec")
+    lib = [x for x in (suite["scenarios"] if suite else []) if x["name"] not in {b["name"] for b in builtin}]
+    scenarios = builtin + lib + [x for x in new if x["name"] not in {l["name"] for l in lib}]   # floor + library always run
     stress_rep, stress_ctx = stress_context(cand_path, dep, fuzz) if fuzz else (None, "")
     for rnd in range(rounds):
         if rnd > 0:
@@ -226,7 +288,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
                     'near-misses above]} or {"scenarios": []} if you have nothing harder.'
                     + (stress_ctx if rnd == 1 else ""))
             msgs.append({"role": "user", "content": body})
-            rr = llm.subq(msgs)
+            rr = llm.subq(msgs, "subq-redteam", rnd)
             if not rr:
                 log.append({"round": rnd, "note": "no SubQ (offline/no key/no cache)"}); break
             msgs.append({"role": "assistant", "content": rr["text"]})
@@ -234,6 +296,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
             got = j.get("scenarios", []) if isinstance(j, dict) else []
             scenarios = [v for i, s in enumerate(got[:MAX_SCEN])
                          if (v := validate_scenario(s, 1000 * rnd + i))]
+            llm.note(f"{len(scenarios)} scenarios proposed")
             prompt_hashes.append(rr["hash"])
             log.append({"round": rnd, "prompt_tokens": rr["usage"].get("prompt_tokens"),
                         "context_chars": sum(len(json.dumps(m)) for m in msgs),
@@ -279,6 +342,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
                         "autonomous baggage tractor, navy = aircraft, orange box = active jet-blast "
                         "zone, red X = safety violation). In two sentences, describe the hazard."}],
                       image=png)
+        if vr:
+            llm.note("described frame")
         vision = {"frame": png.relative_to(ROOT).as_posix(),
                   "description": vr["text"] if vr else "vision unavailable (no META key/cache)",
                   "source": "meta" if vr else None}
@@ -330,7 +395,10 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
               for i, v in enumerate(flat[:100])}
         qs["page_ops_now"] = {"type": "noul", "instructions": "Should airport operations be phoned immediately?",
                               "criteria": {"true": "Real risk of collision or jet-blast injury", "false": "Minor or procedural"}}
-        a = llm.snap(rules_md + "\n\nVIOLATIONS:\n" + json.dumps(flat, indent=1), qs)
+        try:
+            a = llm.snap(rules_md + "\n\nVIOLATIONS:\n" + json.dumps(flat, indent=1), qs, "snap-triage")
+        except Exception as e:    # advisory: alert falls back to call+sms
+            print(f"  snap triage failed: {str(e)[:120]}"); a = None
         if a:
             labels = ["minor", "serious", "critical"]
             for i, v in enumerate(flat[:100]):
@@ -339,8 +407,10 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
                 triage["severity"].append({"rule": v["rule"], "scenario": v["scenario"],
                                            "label": labels[min(2, round(v_sev["score"]))],
                                            "score": round(v_sev["score"], 2)})
+            llm.note(max(triage["severity"], key=lambda s: s["score"])["label"])
             print(f"  snap triage: page_ops_now={triage['page_ops_now']}, worst="
                   f"{max(triage['severity'], key=lambda s: s['score'])['label']}")
+    screen = snap_screen(all_res)
     alert_res = alert.alert({**body, "deployed_after": body_dep, "triage": triage}, alert_mode, notify_pass)
     usage = usage_summary()          # outside verdict_hash: latency varies run to run
     builtin_names = {b["name"] for b in builtin}
@@ -349,10 +419,17 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
     sim.export_replay(ROOT / "out" / f"replay_{cand_path.stem}.js", runs,
                       {**body, "deployed_after": body_dep, "usage": usage, "triage": triage})
     out = ROOT / "verdicts" / f"{cand_path.stem}_{time.strftime('%Y%m%d_%H%M%S')}.json"
+    llm.RUN["verdict_file"] = out.name
+    calls = {"run_id": llm.RUN["run_id"], "n": len(llm.USAGE), "by_agent": {}}
+    for u in llm.USAGE:
+        g = calls["by_agent"].setdefault(u["agent"], {"calls": 0, "cached": 0, "prompt_tokens": 0, "latency_s": 0.0})
+        g["calls"] += 1; g["cached"] += u["cached"]; g["prompt_tokens"] += u["prompt_tokens"] or 0
+        g["latency_s"] = round(g["latency_s"] + u["latency_s"], 2)
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps({**body, "written_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
                                "deployed_after": body_dep, "usage": usage, "triage": triage,
-                               "alert": alert_res}, indent=1))
+                               "alert": alert_res, "calls": calls, "snap_screen": screen}, indent=1))
+    llm.flush_calls()
     print(f"\n{verdict}  {rel}   verdict_hash={body['verdict_hash'][:16]}  ({out.name})")
     for v in flat[:5]:
         print(f"  {v['rule']:20} scenario={v['scenario']} t={v['t']}s at ({v['x']},{v['y']}) "

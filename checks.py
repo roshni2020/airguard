@@ -26,9 +26,9 @@ STRICT = {"limit": min, "margin": max, "min_dist": max, "visibility_below": max}
 BOUNDS = {"limit": (0.5, 20), "margin": (0, 50), "min_dist": (0, 100), "visibility_below": (0, 10000)}
 
 
-def tighten(proposed):
-    """Merge verifier params into the floor. Returns (params, rejected_notes)."""
-    out = {k: dict(v) for k, v in FLOOR.items()}
+def tighten(proposed, base=None):
+    """Merge verifier params into the floor (or an already-tightened base). Returns (params, rejected_notes)."""
+    out = {k: dict(v) for k, v in (base or FLOOR).items()}
     rejected = []
     for rule, params in (proposed or {}).items():
         if rule not in FLOOR or not isinstance(params, dict):

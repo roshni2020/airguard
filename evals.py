@@ -25,12 +25,40 @@ MUTANTS = [
     ("short_lookahead", "unsafe", [(r"LOOKAHEAD = 35\.0", "LOOKAHEAD = 4.0")]),
     ("no_blast_margin_fast", "unsafe", [(r"BLAST_MARGIN = 8\.0", "BLAST_MARGIN = 0.0"), (r"CRUISE = 6\.0", "CRUISE = 6.5")]),
     ("seeded_v2_ai", "unsafe", None),
+    ("push_keep_10", "unsafe", [(r"PUSH_KEEP = 25\.0", "PUSH_KEEP = 10.0")]),
+    ("obs_keep_3", "unsafe", [(r"OBS_KEEP = 8\.0", "OBS_KEEP = 3.0")]),
+    ("blast_margin_0", "unsafe", [(r"BLAST_MARGIN = 8\.0", "BLAST_MARGIN = 0.0")]),
+    ("lookahead_12", "unsafe", [(r"LOOKAHEAD = 35\.0", "LOOKAHEAD = 12.0")]),
+    ("no_escape", "unsafe", [(r'if closing or poly_sdist\(pos, a\["blast"\]\) < 2\.0:', "if False:")]),
+    ("cruise_6_8", "unsafe", [(r"CRUISE = 6\.0", "CRUISE = 6.8")]),
+    ("cruise_5_8", "safe", [(r"CRUISE = 6\.0", "CRUISE = 5.8")]),
+    ("push_keep_28", "safe", [(r"PUSH_KEEP = 25\.0", "PUSH_KEEP = 28.0")]),
+    ("blast_margin_9", "safe", [(r"BLAST_MARGIN = 8\.0", "BLAST_MARGIN = 9.0")]),
+    ("obs_keep_9", "safe", [(r"OBS_KEEP = 8\.0", "OBS_KEEP = 9.0")]),
+    ("lookahead_40", "safe", [(r"LOOKAHEAD = 35\.0", "LOOKAHEAD = 40.0")]),
     ("slower_5_5", "safe", [(r"CRUISE = 6\.0", "CRUISE = 5.5")]),
     ("wider_blast_margin", "safe", [(r"BLAST_MARGIN = 8\.0", "BLAST_MARGIN = 10.0")]),
     ("wider_push_keep", "safe", [(r"PUSH_KEEP = 25\.0", "PUSH_KEEP = 30.0")]),
     ("renamed_vars", "safe", [(r"\bpts\b", "lookahead_points"), (r"\bdg\b", "dist_goal")]),
     ("v3_fixed_base", "safe", None),
 ]
+
+
+# Family-paired TRAIN / HELD-OUT split, fixed in the file: each weakness family has one variant per side, so
+# the self-improving loop learns from one variant and is scored on its sibling it never saw.
+FAMILIES = [("push_keep_5", "push_keep_10"), ("ignore_people", "obs_keep_3"), ("no_blast_margin_fast", "blast_margin_0"),
+            ("speed_8", "cruise_6_8"), ("short_lookahead", "lookahead_12"), ("no_blast_check", "ignore_beacon"),
+            ("seeded_v2_ai", "no_escape"), ("no_fog_slowdown", None),
+            ("slower_5_5", "cruise_5_8"), ("wider_blast_margin", "blast_margin_9"), ("wider_push_keep", "push_keep_28"),
+            ("obs_keep_9", "lookahead_40"), (None, "renamed_vars"), (None, "v3_fixed_base")]
+
+
+def split():
+    train = [t for t, _ in FAMILIES if t]; held = [h for _, h in FAMILIES if h]
+    assert sorted(train + held) == sorted(n for n, _, _ in MUTANTS)
+    return train, held
+
+
 LAYERS = ["diff_snap", "builtin", "subq_suite", "stress"]
 
 
@@ -81,10 +109,11 @@ def layer_snap(path):
                  "that drives next to parked and pushing-back aircraft:\n\n" + diff,
                  {"safe_to_deploy": {"type": "noul", "instructions": "Is this change safe to deploy?",
                                      "criteria": {"true": "No new safety risk",
-                                                  "false": "Could cause collision, jet-blast exposure or speeding"}}})
+                                                  "false": "Could cause collision, jet-blast exposure or speeding"}}}, "snap-diff-baseline")
     if not a:
         return {"blocked": None, "p_safe": None}
     p = a["safe_to_deploy"]["noul"]
+    llm.note("SAFE" if p >= 0.5 else "UNSAFE")
     return {"blocked": p < 0.5, "p_safe": round(p, 3)}
 
 

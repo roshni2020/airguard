@@ -5,7 +5,7 @@ import llm, verify, meta_implement
 import tempfile
 llm.OFFLINE = True
 llm.CACHE = Path(tempfile.mkdtemp())   # hermetic: deterministic floor only, ignores recorded SubQ replies
-run = lambda p: verify.verify(p, rounds=1, deploy=False, alert_mode="off")
+run = lambda p: verify.verify(p, rounds=1, deploy=False, alert_mode="off", use_suite=False)
 
 v1 = run("tugs/tug_v1.py");          assert v1["verdict"] == "PASS", v1["violations"]
 v2 = run("tugs/tug_v2_ai.py");       assert v2["verdict"] == "BLOCK"

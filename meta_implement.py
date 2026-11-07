@@ -46,6 +46,7 @@ if __name__ == "__main__":
     if not r:
         sys.exit("no META_API_KEY and no cached response - set META_API_KEY")
     code = sanitize(llm.extract_code(r["text"]))
+    llm.note(f"wrote {len(code.splitlines())} lines")
     header = (f'"""GENERATED LIVE by Meta ({llm.META_MODEL}) via meta_implement.py.\n'
               f'Request: {a.request}\nBase: {a.base}  llm_cache={r["hash"][:16]}"""\n')
     Path(a.out).write_text(header + code)

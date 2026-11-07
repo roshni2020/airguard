@@ -88,6 +88,54 @@ Every SubQ and Meta call records its prompt and completion tokens, prompt charac
 `verify.py` prints totals per model, stores them in the verdict (`usage`, outside `verdict_hash`),
 and the viewer shows them.
 
+## Agent call trace
+
+Every model call (SubQ red team, SubQ Snap, Meta) appends one line to `out/calls.jsonl` with: run id,
+agent role (`subq-redteam`, `subq-improve`, `snap-triage`, `snap-screen`, `snap-realism`, `snap-diff-baseline`,
+`meta-vision`, `meta-implement`), round, model, a sha256 of the request (never the prompt or any key),
+characters, tokens, latency, cache hit, and a short outcome. Each verdict also carries a `calls` summary.
+`py calls.py [--run RUN_ID]` prints a timeline per run, totals per agent, and SubQ's context growth per round.
+
+Measured so far (unique live calls): **subq-preview about 4M prompt tokens** across red-team and improve calls,
+with the largest single prompt at **676,060 tokens**.
+
+## SubQ Snap on large data
+
+SubQ Snap (`/v1/systemone`, 393,216-token window) gets the **complete raw traces** of every scenario in a gate
+run. That was **368,563 tokens in one call, answered in 4.6 s**. It rates each scenario for a safety-rule
+breach, and we measure agreement with the deterministic Python judge. On the v2 gate (46 scenarios) it agreed
+on **32/46, with 0 false alarms and 14 misses** (subtle clearance breaches). Snap is a fast screen, but the
+deterministic judge has to stay in charge. It is stored in the verdict as `snap_screen` and is advisory only.
+
+## Self-improving gate
+
+`suite/` is a versioned scenario library: `v001` = the built-in floor plus the 34 scenarios SubQ wrote in live
+red-team runs, `current.json` points at the active version, and `history.jsonl` logs every proposal. `evals.py`
+splits the mutants into **TRAIN / HELD-OUT by weakness family** (for example `push_keep_5` in train and `push_keep_10`
+held out). That split is fixed in the file, so the loop learns from one variant and is scored on a sibling it never saw.
+
+`py improve.py --iterations 3`: run the suite on TRAIN, send the escaped mutants' diffs and full near-miss
+traces to SubQ (`subq-improve`, about 180k tokens per call), let Snap drop unrealistic proposals, then evaluate
+current and candidate on HELD-OUT. **Adopt only if held-out catch strictly rises and false blocks do not.**
+Rejected proposals and the escaped mutants' closest approaches are fed back to SubQ in the next iteration.
+Built-in floor scenarios can never be removed. `verify.py` always uses `suite/current.json`.
+
+Real run (out/improve.png):
+
+| version | train catch | held-out catch | held-out false-block | status |
+|---|---|---|---|---|
+| v001 | 7/8 | 5/7 | 3/6 | current |
+| v002 | 7/8 | 5/7 | 3/6 | rejected (no gain) |
+| v003 | **8/8** | **7/7** | **6/6** | rejected: caught every unsafe mutant, but also blocked every safe one |
+| v004 | 7/8 | 5/7 | 3/6 | rejected (no gain) |
+
+**No version was adopted.** With rejection feedback, SubQ found scenarios in v003 that catch the pushback
+keep-out family that had slipped past everything (`push_keep_5`, `push_keep_10`, `blast_margin_0`). But those
+scenarios were so harsh that every safe variant failed too, so the adoption rule blocked an over-harsh suite.
+The false blocks in v001 are also informative. `cruise_5_8` (slower) gets caught as a beacon lights, so slower
+is not automatically safer. `push_keep_28` and `blast_margin_9` (more cautious) miss SubQ's tight delivery
+deadlines, which means the gate is strict on delivery time as well as safety.
+
 ## Run it
 
 ```
@@ -95,6 +143,8 @@ py -m pip install requests matplotlib
 py selfcheck.py                              # offline: v1 PASS, v2 BLOCK (jet blast + fog), v3 PASS, stand-still BLOCK, reproducible
 py verify.py --candidate tugs/tug_v2_ai.py --alert both   # BLOCK -> rollback -> your phone rings + SMS
 py baseline.py tugs/tug_v3_fixed.py          # diff-only reviewer (SubQ Snap) for contrast
+py improve.py --iterations 3                  # self-improving scenario library
+py calls.py                                   # agent call trace
 py meta_implement.py --request "make the route 20% faster" --out tugs/tug_meta_1.py   # needs META_API_KEY
 py verify.py tugs/tug_meta_1.py
 py stress.py --n 1000 tugs/tug_v1.py tugs/tug_v2_ai.py tugs/tug_v3_fixed.py   # large-data comparison
