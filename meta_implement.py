@@ -7,7 +7,7 @@ access, and it must define Controller.step. It then goes through verify.py like 
 """
 import argparse, ast, sys
 from pathlib import Path
-import llm
+import agents, llm
 
 ALLOWED_IMPORTS = {"math", "sim"}
 BANNED_NAMES = {"open", "exec", "eval", "compile", "__import__", "globals", "getattr", "setattr"}
@@ -37,12 +37,11 @@ if __name__ == "__main__":
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
     base = Path(a.base).read_text()
-    r = llm.meta([
-        {"role": "system", "content": "You maintain the Python controller of an autonomous airport "
+    r = agents.implementer("You maintain the Python controller of an autonomous airport "
          "baggage tractor. Return ONE complete Python file in a ```python block. Keep the exact API: "
          "class Controller with step(self, obs) -> {'target': (x, y), 'speed': m/s}. Only import math "
-         "and names from sim (dist, poly_sdist, footprint_dist, seg_dist)."},
-        {"role": "user", "content": f"Change request: {a.request}\n\nCurrent controller:\n```python\n{base}```"}])
+         "and names from sim (dist, poly_sdist, footprint_dist, seg_dist).").ask(
+        f"Change request: {a.request}\n\nCurrent controller:\n```python\n{base}```")
     if not r:
         sys.exit("no META_API_KEY and no cached response - set META_API_KEY")
     code = sanitize(llm.extract_code(r["text"]))

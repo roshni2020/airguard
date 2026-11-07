@@ -10,7 +10,7 @@ ones -> candidate suite = current + new -> evaluate both on HELD-OUT -> adopt/re
 import argparse, difflib, hashlib, json, time
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-import checks, evals, llm, sim, verify
+import agents, checks, evals, llm, sim, verify
 
 ROOT = Path(__file__).parent
 SUITE = ROOT / "suite"
@@ -63,7 +63,7 @@ def realistic(scenarios):
           for i, s in enumerate(scenarios)}
     state = (ROOT / "rules/ground_ops.md").read_text() + "\n\nSCENARIOS:\n" + json.dumps(
         {f"s{i}": s for i, s in enumerate(scenarios)}, indent=1)
-    a = llm.snap(state, qs, "snap-realism")
+    a = agents.snap("snap-realism").decide(state, qs)
     if not a:
         return scenarios, {}
     p = {s["name"]: round(a[f"s{i}"]["noul"], 3) for i, s in enumerate(scenarios)}
@@ -88,19 +88,19 @@ def propose(cur, escaped, cands, it, feedback=""):
         parts.append(f"### ESCAPED MUTANT {name}\ncomment-stripped diff vs approved controller:\n{diff}\n" +
                      "\n".join(f"closest scenario {s['name']} (margin {m:.2f} m):\n{verify.trace_csv(tr)}" for m, s, tr in scored[:3]))
     faa = (ROOT / "data/faa_ac_150_5210_20A.txt").read_text(encoding="utf-8", errors="replace")
-    msgs = [{"role": "system", "content": "You improve AirGuard's scenario library for autonomous airport baggage tractors. "
-             "Deterministic Python decides pass/fail; you only design scenarios. Reply with JSON only."},
-            {"role": "user", "content": f"FAA AC 150/5210-20A:\n{faa}\n\nRULES:\n{(ROOT / 'rules/ground_ops.md').read_text()}\n\n"
+    agent = agents.improver("You improve AirGuard's scenario library for autonomous airport baggage tractors. "
+                            "Deterministic Python decides pass/fail; you only design scenarios. Reply with JSON only.")
+    prompt = (f"FAA AC 150/5210-20A:\n{faa}\n\nRULES:\n{(ROOT / 'rules/ground_ops.md').read_text()}\n\n"
              f"MAP:\n{verify.map_summary()}\n\n{verify.SCHEMA}\nSTANDS={sim.STAND_REFS} TYPES={list(sim.AIRCRAFT)}\n\n"
              f"CURRENT SUITE {cur['version']} ({len(cur['scenarios'])} scenarios):\n{json.dumps(cur['scenarios'])}\n\n"
              f"These unsafe controller variants PASSED every scenario in the suite - the suite has a blind spot:\n\n" +
              "\n\n".join(parts) + feedback +
              '\n\nPropose up to 6 NEW scenarios that a safe controller passes but these variants fail. Target the specific '
-             'weakened behaviour in each diff, using the near-miss traces. Return JSON {"scenarios": [...]}.'}]
-    r = llm.subq(msgs, "subq-improve", it)
+             'weakened behaviour in each diff, using the near-miss traces. Return JSON {"scenarios": [...]}.')
+    r = agent.ask(prompt, it)
     if not r:
         return [], None
-    j = llm.extract_json(r["text"])
+    j = r["json"]
     got = j.get("scenarios", []) if isinstance(j, dict) else []
     new = [v for i, s in enumerate(got[:6]) if (v := verify.validate_scenario(s, 5000 + 100 * it + i))]
     for k, s in enumerate(new):

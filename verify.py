@@ -4,7 +4,7 @@
 """
 import argparse, copy, difflib, hashlib, importlib.util, io, json, sys, time, tokenize
 from pathlib import Path
-import sim, checks, llm, stress, alert
+import sim, checks, llm, stress, alert, agents
 
 ROOT = Path(__file__).parent
 DEPLOYED = ROOT / "deployed.json"
@@ -184,7 +184,7 @@ def snap_screen(all_res):
                                          "pushback or person, or exceeded a speed limit",
                                  "false": "Kept every clearance and speed limit"}} for i in range(len(runs))}
     try:
-        a = llm.snap(state, qs, "snap-screen")
+        a = agents.snap("snap-screen").decide(state, qs)
     except Exception as e:        # advisory: never crash the gate
         print(f"  snap screen failed: {str(e)[:120]}")
         return {"error": str(e)[:200]}
@@ -251,11 +251,11 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
              "Invariant rule ids and params must come from checks.FLOOR (they can only tighten). "
              "Design adversarial scenarios: engine start at an adjacent stand, pushback across "
              "the tractor path, crew stepping out, fog, GPS drift, debris.")
-    msgs = [{"role": "system", "content": system}, {"role": "user", "content": blind}]
+    red = agents.redteam(system)            # long-horizon agent: keeps every round in memory
 
     log, rejected, all_res, prompt_hashes = [], [], [], []
-    r0 = llm.subq(msgs, "subq-redteam", 0)
-    spec = llm.extract_json(r0["text"]) if r0 else None
+    r0 = red.ask(blind, 0)
+    spec = r0["json"] if r0 else None
     spec_source = "subq" if isinstance(spec, dict) else "builtin_floor"
     suite = load_suite() if use_suite else None
     base_params = checks.tighten(suite["invariants"])[0] if suite else None
@@ -263,7 +263,6 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
     rejected += rej
     new = []
     if spec_source == "subq":
-        msgs.append({"role": "assistant", "content": r0["text"]})
         for i, s in enumerate(spec.get("scenarios", [])[:MAX_SCEN]):
             v = validate_scenario(s, 100 + i)
             (new.append(v) if v else rejected.append(f"invalid scenario #{i}"))
@@ -287,19 +286,17 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
                     'Return JSON {"scenarios": [up to 4 NEW, harder scenarios targeting the closest '
                     'near-misses above]} or {"scenarios": []} if you have nothing harder.'
                     + (stress_ctx if rnd == 1 else ""))
-            msgs.append({"role": "user", "content": body})
-            rr = llm.subq(msgs, "subq-redteam", rnd)
+            rr = red.ask(body, rnd)
             if not rr:
-                log.append({"round": rnd, "note": "no SubQ (offline/no key/no cache)"}); break
-            msgs.append({"role": "assistant", "content": rr["text"]})
-            j = llm.extract_json(rr["text"])
+                log.append({"round": rnd, "note": "no SubQ (offline/no key/no cache/over budget)"}); break
+            j = rr["json"]
             got = j.get("scenarios", []) if isinstance(j, dict) else []
             scenarios = [v for i, s in enumerate(got[:MAX_SCEN])
                          if (v := validate_scenario(s, 1000 * rnd + i))]
             llm.note(f"{len(scenarios)} scenarios proposed")
             prompt_hashes.append(rr["hash"])
             log.append({"round": rnd, "prompt_tokens": rr["usage"].get("prompt_tokens"),
-                        "context_chars": sum(len(json.dumps(m)) for m in msgs),
+                        "context_chars": red.context_chars(),
                         "new_scenarios": len(scenarios)})
             if not scenarios:
                 break
@@ -308,7 +305,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
                 prompt_hashes.append(r0["hash"])
             log.append({"round": 0, "spec_source": spec_source,
                         "prompt_tokens": r0["usage"].get("prompt_tokens") if r0 else None,
-                        "context_chars": sum(len(json.dumps(m)) for m in msgs),
+                        "context_chars": red.context_chars(),
                         "new_scenarios": len(new)})
         res = run_all(ctrl, scenarios, params, load_controller(ROOT / dep["current"]["path"]))
         all_res.append(res)
@@ -337,11 +334,9 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
         png = ROOT / "out" / f"{cand_path.stem}_violation.png"
         png.parent.mkdir(exist_ok=True)
         sim.save_frame(tr, first["t"], png, vs)
-        vr = llm.meta([{"role": "user", "content":
-                        "This is a top-down frame from an airport apron simulation (green square = "
-                        "autonomous baggage tractor, navy = aircraft, orange box = active jet-blast "
-                        "zone, red X = safety violation). In two sentences, describe the hazard."}],
-                      image=png)
+        vr = agents.vision().ask("This is a top-down frame from an airport apron simulation (green square = "
+                                 "autonomous baggage tractor, navy = aircraft, orange box = active jet-blast "
+                                 "zone, red X = safety violation). In two sentences, describe the hazard.", image=png)
         if vr:
             llm.note("described frame")
         vision = {"frame": png.relative_to(ROOT).as_posix(),
@@ -396,7 +391,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
         qs["page_ops_now"] = {"type": "noul", "instructions": "Should airport operations be phoned immediately?",
                               "criteria": {"true": "Real risk of collision or jet-blast injury", "false": "Minor or procedural"}}
         try:
-            a = llm.snap(rules_md + "\n\nVIOLATIONS:\n" + json.dumps(flat, indent=1), qs, "snap-triage")
+            a = agents.snap("snap-triage").decide(rules_md + "\n\nVIOLATIONS:\n" + json.dumps(flat, indent=1), qs)
         except Exception as e:    # advisory: alert falls back to call+sms
             print(f"  snap triage failed: {str(e)[:120]}"); a = None
         if a:

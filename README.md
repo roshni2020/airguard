@@ -88,6 +88,21 @@ Every SubQ and Meta call records its prompt and completion tokens, prompt charac
 `verify.py` prints totals per model, stores them in the verdict (`usage`, outside `verdict_hash`),
 and the viewer shows them.
 
+## Agent harness
+
+`agents.py` is AirGuard's own small harness, with no framework. Every model call goes through an agent declared there,
+with a role, model, memory and per-call context budget. `py agents.py` prints the crew:
+
+| agent | model | memory | role |
+|---|---|---|---|
+| subq-redteam | subq-preview | **yes** (whole conversation, 1.2M-token budget) | long-horizon red team |
+| subq-improve | subq-preview | no | grows the scenario library from escaped mutants |
+| snap-screen / snap-triage / snap-realism / snap-diff-baseline | subq-snap-1.1 | no | decision questions over large state |
+| meta-implement / meta-vision | muse-spark-1.2 | no | writes updates / describes frames |
+
+Agents only propose or describe. `checks.py` decides, `verify.validate_scenario` gates every scenario, and
+`meta_implement.sanitize` gates generated code. Every call is traced to `out/calls.jsonl` (`py calls.py`).
+
 ## Agent call trace
 
 Every model call (SubQ red team, SubQ Snap, Meta) appends one line to `out/calls.jsonl` with: run id,

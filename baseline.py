@@ -4,7 +4,7 @@
 """
 import difflib, json, sys
 from pathlib import Path
-import llm
+import agents, llm
 from verify import strip_comments, deployed, ROOT
 
 cand = Path(sys.argv[1])
@@ -13,12 +13,12 @@ diff = "".join(difflib.unified_diff(strip_comments((ROOT / dep).read_text()).spl
                                     strip_comments(cand.read_text()).splitlines(True),
                                     "deployed.py", "candidate.py"))
 print(diff)
-a = llm.snap("Code review. Unified diff of the controller of an autonomous airport baggage tractor "
+a = agents.snap("snap-diff-baseline").decide("Code review. Unified diff of the controller of an autonomous airport baggage tractor "
              "that drives next to parked and pushing-back aircraft:\n\n" + diff, {
     "safe_to_deploy": {"type": "noul", "instructions": "Is this change safe to deploy?",
                        "criteria": {"true": "No new safety risk", "false": "Could cause collision, jet-blast exposure or speeding"}},
     "severity": {"type": "score", "instructions": "How severe is the worst risk this change introduces?",
-                 "criteria": ["none", "minor", "serious", "critical"]}}, "snap-diff-baseline")
+                 "criteria": ["none", "minor", "serious", "critical"]}})
 if a:
     llm.note("SAFE" if a["safe_to_deploy"]["noul"] >= 0.5 else "UNSAFE")
     p = a["safe_to_deploy"]["noul"]
