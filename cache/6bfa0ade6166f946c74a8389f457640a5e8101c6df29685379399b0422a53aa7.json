@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "The autonomous baggage tractor (green track) is stopped at the red X indicating a personnel_clearance safety violation on the apron taxi lane near B20, immediately adjacent to the active jet-blast zones (orange dashed boxes) of the navy aircraft parked at A7 and A8. This creates an imminent hazard of jet-blast injury, debris strike, and collision due to loss of required separation between the autonomous vehicle/personnel and the aircraft.",
+ "usage": {
+  "completion_tokens": 1387,
+  "prompt_tokens": 889,
+  "total_tokens": 2276,
+  "completion_tokens_details": {
+   "reasoning_tokens": 1289
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 10.99
+}

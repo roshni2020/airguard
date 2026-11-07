@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\": [{\"name\": \"rt_beacon_early_long_deadline\", \"seed\": 21, \"destination\": \"A8\", \"deadline\": 118, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 3, \"state\": \"beacon_on\"}, {\"t\": 6, \"state\": \"engines_running\"}, {\"t\": 85, \"state\": \"gone\"}]}]}, {\"name\": \"rt_pushback_sweeps_route\", \"seed\": 22, \"destination\": \"A8\", \"deadline\": 200, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 40, \"events\": [{\"t\": 8, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"pushback\"}, {\"t\": 70, \"state\": \"gone\"}]}]}, {\"name\": \"rt_gps_drift_pushback_escape\", \"seed\": 23, \"destination\": \"A8\", \"deadline\": 200, \"gps_noise\": 2.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 6, \"state\": \"beacon_on\"}, {\"t\": 9, \"state\": \"pushback\"}, {\"t\": 80, \"state\": \"gone\"}]}]}, {\"name\": \"rt_debris_on_waypoint_crew_crossing\", \"seed\": 24, \"destination\": \"A8\", \"deadline\": 200, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\"}], \"obstacles\": [{\"kind\": \"debris\", \"path\": [[124.6, 3.1]], \"speed\": 0}, {\"kind\": \"person\", \"path\": [[140.0, -20.0], [130.2, -11.4]], \"speed\": 1.2, \"t0\": 10}]}]}",
+ "usage": {
+  "prompt_tokens": 417097,
+  "completion_tokens": 9329,
+  "total_tokens": 426426,
+  "prompt_tokens_details": {
+   "cached_tokens": 366592,
+   "created_cache_tokens": 50432,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 8850
+  }
+ },
+ "latency_s": 28.9
+}

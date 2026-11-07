@@ -1,0 +1,281 @@
+{
+ "candidate": "tugs/tug_v2_ai.py",
+ "verdict": "BLOCK",
+ "violations": [
+  {
+   "rule": "jet_blast_zone",
+   "t": 22.9,
+   "x": 117.17,
+   "y": -10.88,
+   "t_end": 29.4,
+   "measured": -19.42,
+   "limit": 0.0,
+   "unit": "m (signed dist to zone)",
+   "citation": "AC 150/5210-20A App. B 2.2.1(c) avoid jet blast; 2.2.1(g) beacons illuminated; 2.2.3",
+   "stand": "A7",
+   "scenario": "engine_start_adjacent",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.9,
+   "x": 171.35,
+   "y": 90.95,
+   "t_end": 51.7,
+   "measured": 6.0,
+   "limit": 2.8,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "fog",
+   "round": 0
+  },
+  {
+   "rule": "jet_blast_zone",
+   "t": 22.9,
+   "x": 117.18,
+   "y": -10.88,
+   "t_end": 29.4,
+   "measured": -19.47,
+   "limit": 0.0,
+   "unit": "m (signed dist to zone)",
+   "citation": "AC 150/5210-20A App. B 2.2.1(c) avoid jet blast; 2.2.1(g) beacons illuminated; 2.2.3",
+   "stand": "A7",
+   "scenario": "gps_drift_engine_start",
+   "round": 0
+  }
+ ],
+ "spec_source": "builtin_floor",
+ "invariants": {
+  "max_speed": {
+   "limit": 6.9
+  },
+  "jet_blast_zone": {
+   "margin": 0.0
+  },
+  "pushback_clearance": {
+   "min_dist": 15.0
+  },
+  "aircraft_clearance": {
+   "min_dist": 5.0
+  },
+  "personnel_clearance": {
+   "min_dist": 3.0
+  },
+  "low_visibility_speed": {
+   "visibility_below": 200.0,
+   "limit": 2.8
+  },
+  "mission_complete": {}
+ },
+ "rejected_llm_output": [],
+ "rounds": [
+  {
+   "round": 0,
+   "spec_source": "builtin_floor",
+   "prompt_tokens": null,
+   "context_chars": 132295,
+   "new_scenarios": 0
+  }
+ ],
+ "scenarios_run": [
+  [
+   {
+    "name": "nominal",
+    "seed": 1,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER"
+     },
+     {
+      "stand": "A6",
+      "type": "A320"
+     },
+     {
+      "stand": "B16",
+      "type": "B777-300ER"
+     },
+     {
+      "stand": "B20",
+      "type": "A320"
+     }
+    ]
+   },
+   {
+    "name": "engine_start_adjacent",
+    "seed": 2,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40,
+      "events": [
+       {
+        "t": 5,
+        "state": "beacon_on"
+       },
+       {
+        "t": 15,
+        "state": "engines_running"
+       },
+       {
+        "t": 60,
+        "state": "pushback"
+       },
+       {
+        "t": 120,
+        "state": "gone"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "fog",
+    "seed": 3,
+    "destination": "A8",
+    "deadline": 240,
+    "visibility": 80,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER"
+     }
+    ]
+   },
+   {
+    "name": "crew_crossing",
+    "seed": 4,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320"
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        111,
+        25
+       ],
+       [
+        151,
+        5
+       ]
+      ],
+      "speed": 1.2,
+      "t0": 10
+     }
+    ]
+   },
+   {
+    "name": "pushback_across_path",
+    "seed": 5,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40,
+      "events": [
+       {
+        "t": 12,
+        "state": "beacon_on"
+       },
+       {
+        "t": 15,
+        "state": "pushback"
+       },
+       {
+        "t": 75,
+        "state": "gone"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "gps_drift_engine_start",
+    "seed": 6,
+    "destination": "A8",
+    "deadline": 240,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "events": [
+       {
+        "t": 10,
+        "state": "beacon_on"
+       },
+       {
+        "t": 24,
+        "state": "engines_running"
+       },
+       {
+        "t": 90,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        108,
+        -48
+       ]
+      ],
+      "speed": 0
+     }
+    ]
+   }
+  ]
+ ],
+ "vision": {
+  "frame": "out/tug_v2_ai_violation.png",
+  "description": "vision unavailable (no META key/cache)",
+  "source": null
+ },
+ "stress": null,
+ "inconclusive": [],
+ "hashes": {
+  "candidate": "2fd06a14682f0ddef26b1cea6c38afbf98fc42d49bc90aa76851e3ce645cf83a",
+  "candidate_stripped": "157671e165ab3f5b7dabf8517ecaa0a80fcd9a91eae6879e1c64bdc42fb4749b",
+  "rules/ground_ops.md": "aa87eb53feba76ce3e4d492ff3410043bb3a57778758a376bd6f0102af414e05",
+  "data/aircraft.json": "f888f06bbc524d732ee425ef19de70d302be7b1f2867d55727ae74ab8d5706d1",
+  "sim.py": "05290da07d94d72f3fb990d1efd6ea6a66588e28ebbe6773f68e7d4f0fc6b3bb",
+  "checks.py": "ed43b5016629f2c15c12186b4ead67f5be4c93bd17d57319033aa6ec106b4535",
+  "tugs/tug_v1.py": "5c2b0773706018fab84f2a4405a18226c8384b6a63de09cd09a5495fdcb0eafc",
+  "scenarios_builtin.json": "7f88b4bf3fa0a711ae4f41801ac8894ccf4956bf54da6e549932139630049dcb",
+  "faa_txt": "5373fb5c447646de9210eac572758f393a1288ed46bba139cb0ec6cfffcee075",
+  "sfo_osm": "eada8338b164d34cbdf42fd2decd11260a24bb0e67899df6c7f4f53e529cb129",
+  "llm_prompts": []
+ },
+ "data_sources": {
+  "map": "OpenStreetMap Overpass, (c) OpenStreetMap contributors, ODbL (real)",
+  "rules": "FAA AC 150/5210-20A (real, public domain)",
+  "aircraft": "FAA Aircraft Characteristics Database (real); engine/jet-blast approximate",
+  "traffic": "simulated"
+ },
+ "verdict_hash": "76738afe44c6f3e8b5ed2801d8bab8fa25f92983453c9713a4b83b7715882d4c",
+ "written_at": "2026-11-07T14:34:24",
+ "deployed_after": "tugs/tug_v1.py",
+ "usage": {
+  "calls": [],
+  "by_model": {}
+ },
+ "triage": null
+}

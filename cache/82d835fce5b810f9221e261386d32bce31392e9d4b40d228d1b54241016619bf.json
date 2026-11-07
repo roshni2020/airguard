@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\": [{\"name\": \"rt_blast_edge_grazing\", \"seed\": 21, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 1.5, \"aircraft\": [{\"stand\": \"A6\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 3, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}, {\"stand\": \"A7\", \"type\": \"A350-900\", \"push_dist\": 40, \"events\": [{\"t\": 6, \"state\": \"beacon_on\"}, {\"t\": 14, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}]}, {\"name\": \"rt_debris_in_blast_detour\", \"seed\": 22, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 1.2, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 2, \"state\": \"beacon_on\"}, {\"t\": 8, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}], \"obstacles\": [{\"kind\": \"debris\", \"path\": [[114.4, -16.2]], \"speed\": 0}, {\"kind\": \"person\", \"path\": [[108.0, -28.2], [87.2, -68.9]], \"speed\": 1.4, \"t0\": 12}]}, {\"name\": \"rt_pushback_close_start\", \"seed\": 23, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 1.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 60, \"events\": [{\"t\": 8, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"pushback\"}, {\"t\": 90, \"state\": \"gone\"}]}, {\"stand\": \"B20\", \"type\": \"A320\", \"push_dist\": 40, \"events\": [{\"t\": 5, \"state\": \"beacon_on\"}, {\"t\": 12, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}]}, {\"name\": \"rt_gps_drift_tight_clearance\", \"seed\": 24, \"destination\": \"A8\", \"deadline\": 180, \"visibility\": 5000, \"gps_noise\": 2.4, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 40, \"events\": []}, {\"stand\": \"B20\", \"type\": \"A320\", \"push_dist\": 40, \"events\": []}, {\"stand\": \"A6\", \"type\": \"A320\", \"push_dist\": 40, \"events\": [{\"t\": 4, \"state\": \"beacon_on\"}, {\"t\": 11, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}], \"obstacles\": [{\"kind\": \"person\", \"path\": [[124.6, 3.1], [114.4, -16.2]], \"speed\": 1.5, \"t0\": 6}]}]}",
+ "usage": {
+  "prompt_tokens": 419657,
+  "completion_tokens": 3365,
+  "total_tokens": 423022,
+  "prompt_tokens_details": {
+   "cached_tokens": 32384,
+   "created_cache_tokens": 387200,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 2535
+  }
+ },
+ "latency_s": 13.09
+}

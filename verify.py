@@ -95,11 +95,19 @@ def trace_csv(tr):
     return "\n".join(rows)
 
 
-def run_all(ctrl_cls, scenarios, params):
+def run_all(ctrl_cls, scenarios, params, base_cls=None):
+    """Safety violations always block. A missed deadline is 'inconclusive' (non-blocking) only
+    when the approved controller also cannot complete that scenario - so a frozen candidate
+    still fails wherever the approved one delivers."""
     res = []
     for sc in scenarios:
         tr = sim.run(ctrl_cls(), sc)
-        res.append({"scenario": sc, "trace": tr, "violations": checks.check(tr, params),
+        v, inc = checks.check(tr, params), []
+        if base_cls and any(x["rule"] == "mission_complete" for x in v):
+            if any(x["rule"] == "mission_complete" for x in checks.check(sim.run(base_cls(), sc), params)):
+                inc = [x for x in v if x["rule"] == "mission_complete"]
+                v = [x for x in v if x["rule"] != "mission_complete"]
+        res.append({"scenario": sc, "trace": tr, "violations": v, "inconclusive": inc,
                     "near_misses": checks.near_misses(tr)})
     return res
 
@@ -239,7 +247,7 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
                         "prompt_tokens": r0["usage"].get("prompt_tokens") if r0 else None,
                         "context_chars": sum(len(json.dumps(m)) for m in msgs),
                         "new_scenarios": len(new)})
-        res = run_all(ctrl, scenarios, params)
+        res = run_all(ctrl, scenarios, params, load_controller(ROOT / dep["current"]["path"]))
         all_res.append(res)
         print(f"round {rnd}: {len(res)} scenarios, "
               f"{sum(len(r['violations']) for r in res)} violations, context {log[-1].get('context_chars')} chars")
@@ -282,6 +290,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
         "spec_source": spec_source, "invariants": params, "rejected_llm_output": rejected,
         "rounds": log, "scenarios_run": [[r["scenario"] for r in rs] for rs in all_res],
         "vision": vision, "stress": stress_rep,
+        "inconclusive": [{**x, "scenario": r["scenario"]["name"], "round": i, "note": "approved controller also misses the deadline"}
+                         for i, rs in enumerate(all_res) for r in rs for x in r["inconclusive"]],
         "hashes": {"candidate": sha(cand_src), "candidate_stripped": sha(strip_comments(cand_src)),
                    **{k: sha(v) for k, v in ctx_files.items()}, "faa_txt": sha(faa),
                    "sfo_osm": sha((ROOT / "data/sfo_osm.json").read_bytes()),
@@ -312,18 +322,37 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, send_alert=True)
     else:
         body_dep = dep["current"]["path"]
 
+    triage = None
+    if flat:   # SubQ Snap: advisory severity triage for ops (never changes PASS/BLOCK)
+        rules_md = (ROOT / "rules/ground_ops.md").read_text()
+        qs = {f"v{i}": {"type": "score", "criteria": ["minor", "serious", "critical"],
+                        "instructions": f"How severe is violation v{i} ({v['rule']} in scenario {v['scenario']}) for ground crew and aircraft?"}
+              for i, v in enumerate(flat[:100])}
+        qs["page_ops_now"] = {"type": "noul", "instructions": "Should airport operations be phoned immediately?",
+                              "criteria": {"true": "Real risk of collision or jet-blast injury", "false": "Minor or procedural"}}
+        a = llm.snap(rules_md + "\n\nVIOLATIONS:\n" + json.dumps(flat, indent=1), qs)
+        if a:
+            labels = ["minor", "serious", "critical"]
+            for i, v in enumerate(flat[:100]):
+                v_sev = a[f"v{i}"]
+                triage = triage or {"page_ops_now": round(a["page_ops_now"]["noul"], 3), "severity": []}
+                triage["severity"].append({"rule": v["rule"], "scenario": v["scenario"],
+                                           "label": labels[min(2, round(v_sev["score"]))],
+                                           "score": round(v_sev["score"], 2)})
+            print(f"  snap triage: page_ops_now={triage['page_ops_now']}, worst="
+                  f"{max(triage['severity'], key=lambda s: s['score'])['label']}")
     if send_alert:
-        alert.send({**body, "deployed_after": body_dep})
+        alert.send({**body, "deployed_after": body_dep, "triage": triage})
     usage = usage_summary()          # outside verdict_hash: latency varies run to run
     builtin_names = {b["name"] for b in builtin}
     runs = [{"round": i, "source": "builtin" if r["scenario"]["name"] in builtin_names else "subq",
              "trace": r["trace"], "violations": r["violations"]} for i, rs in enumerate(all_res) for r in rs]
     sim.export_replay(ROOT / "out" / f"replay_{cand_path.stem}.js", runs,
-                      {**body, "deployed_after": body_dep, "usage": usage})
+                      {**body, "deployed_after": body_dep, "usage": usage, "triage": triage})
     out = ROOT / "verdicts" / f"{cand_path.stem}_{time.strftime('%Y%m%d_%H%M%S')}.json"
     out.parent.mkdir(exist_ok=True)
     out.write_text(json.dumps({**body, "written_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                               "deployed_after": body_dep, "usage": usage}, indent=1))
+                               "deployed_after": body_dep, "usage": usage, "triage": triage}, indent=1))
     print(f"\n{verdict}  {rel}   verdict_hash={body['verdict_hash'][:16]}  ({out.name})")
     for v in flat[:5]:
         print(f"  {v['rule']:20} scenario={v['scenario']} t={v['t']}s at ({v['x']},{v['y']}) "

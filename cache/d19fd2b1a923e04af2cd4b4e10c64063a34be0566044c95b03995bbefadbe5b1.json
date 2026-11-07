@@ -1,0 +1,29 @@
+{
+ "model": "subq-snap-1.1",
+ "answers": {
+  "v0": {
+   "type": "score",
+   "score": 0.5477088242769241,
+   "legend": {
+    "0": "minor",
+    "1": "serious",
+    "2": "critical"
+   },
+   "probabilities": {
+    "0": 0.4960421919822693,
+    "1": 0.4602070152759552,
+    "2": 0.04375090450048447
+   },
+   "confidence": 0.1784367635846138
+  },
+  "page_ops_now": {
+   "type": "noul",
+   "noul": 0.2903699278831482
+  }
+ },
+ "usage": {
+  "prompt_tokens": 1007,
+  "completion_tokens": 0
+ },
+ "latency_s": 1.12
+}

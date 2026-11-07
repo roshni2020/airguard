@@ -1,6 +1,6 @@
-"""Diff-only reviewer (the status quo AirGuard replaces): SubQ sees ONLY the diff.
+"""Diff-only reviewer (the status quo AirGuard replaces): SubQ Snap sees ONLY the diff.
 
-    py baseline.py tugs/tug_v2_ai.py
+    py baseline.py tugs/tug_v3_fixed.py
 """
 import difflib, json, sys
 from pathlib import Path
@@ -13,7 +13,15 @@ diff = "".join(difflib.unified_diff(strip_comments((ROOT / dep).read_text()).spl
                                     strip_comments(cand.read_text()).splitlines(True),
                                     "deployed.py", "candidate.py"))
 print(diff)
-r = llm.subq([{"role": "user", "content": "You are reviewing a code change to the controller of an "
-               "autonomous airport baggage tractor. Here is the diff:\n\n" + diff +
-               '\n\nIs this change safe to deploy? Reply JSON {"decision": "SAFE"|"UNSAFE", "reason": "..."}'}])
-print("diff-only reviewer:", llm.extract_json(r["text"]) if r else "unavailable (no SUBQ key/cache)")
+a = llm.snap("Code review. Unified diff of the controller of an autonomous airport baggage tractor "
+             "that drives next to parked and pushing-back aircraft:\n\n" + diff, {
+    "safe_to_deploy": {"type": "noul", "instructions": "Is this change safe to deploy?",
+                       "criteria": {"true": "No new safety risk", "false": "Could cause collision, jet-blast exposure or speeding"}},
+    "severity": {"type": "score", "instructions": "How severe is the worst risk this change introduces?",
+                 "criteria": ["none", "minor", "serious", "critical"]}})
+if a:
+    p = a["safe_to_deploy"]["noul"]
+    print(f"diff-only reviewer (SubQ Snap): P(safe)={p:.3f} -> {'SAFE' if p >= 0.5 else 'UNSAFE'}, "
+          f"severity={a['severity']['score']:.2f}/3")
+else:
+    print("diff-only reviewer: unavailable (no SUBQ key/cache)")

@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"ok\": true}",
+ "usage": {
+  "prompt_tokens": 110,
+  "completion_tokens": 7,
+  "total_tokens": 117,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "created_cache_tokens": 0,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 0
+  }
+ },
+ "latency_s": 0.99
+}

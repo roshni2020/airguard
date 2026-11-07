@@ -18,7 +18,10 @@ def message(verdict):
     v = verdict["violations"][0]
     gate = v.get("stand") or nearest_gate(v["x"], v["y"])
     rule = v["rule"].replace("_", " ")
-    return (f"AirGuard alert. Update {verdict['candidate']} was blocked. "
+    t = verdict.get("triage") or {}
+    sev = max(t.get("severity", []), key=lambda s: s["score"], default=None)
+    prio = f"Severity {sev['label']}, assessed by SubQ Snap. " if sev else ""
+    return (f"AirGuard alert. {prio}Update {verdict['candidate']} was blocked. "
             f"Rule violated: {rule}, citing {v['citation']}. "
             f"Location: near gate {gate} at SFO, {v['t']} seconds into scenario {v['scenario']}. "
             f"The update was not deployed; {verdict.get('deployed_after', 'the approved controller')} remains in control.")

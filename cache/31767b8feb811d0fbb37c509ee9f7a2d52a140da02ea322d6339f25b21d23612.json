@@ -1,0 +1,31 @@
+{
+ "model": "subq-snap-1.1",
+ "answers": {
+  "safe_to_deploy": {
+   "type": "noul",
+   "noul": 0.0008802534430287778
+  },
+  "severity": {
+   "type": "score",
+   "score": 2.945521544665098,
+   "legend": {
+    "0": "none",
+    "1": "minor",
+    "2": "serious",
+    "3": "critical"
+   },
+   "probabilities": {
+    "0": 0.0017458011861890554,
+    "1": 0.0022309161722660065,
+    "2": 0.04477914050221443,
+    "3": 0.9512441158294678
+   },
+   "confidence": 0.9455216235946864
+  }
+ },
+ "usage": {
+  "prompt_tokens": 375,
+  "completion_tokens": 0
+ },
+ "latency_s": 0.95
+}

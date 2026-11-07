@@ -13,12 +13,13 @@ _env = Path(__file__).parent / ".env"          # gitignored; KEY=VALUE lines, ne
 if _env.exists():
     for line in _env.read_text().splitlines():
         k, sep, v = line.partition("=")
-        if sep and k.strip() and not k.lstrip().startswith("#"):
+        if sep and k.strip() and v.strip() and not k.lstrip().startswith("#"):
             os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 OFFLINE = os.environ.get("AIRGUARD_OFFLINE") == "1"
-SUBQ_URL = os.environ.get("SUBQ_URL", "https://api.subq.ai/v1/chat/completions")
+_chat = lambda base: base.rstrip("/") + ("" if base.rstrip("/").endswith("/chat/completions") else "/chat/completions")
+SUBQ_URL = _chat(os.environ.get("SUBQ_URL") or os.environ.get("SUBQ_BASE_URL") or "https://api.subq.ai/v1")
 SUBQ_MODEL = os.environ.get("SUBQ_MODEL", "subq-preview")
-META_URL = os.environ.get("META_URL", "https://api.meta.ai/v1/chat/completions")
+META_URL = _chat(os.environ.get("META_URL") or os.environ.get("META_BASE_URL") or "https://api.meta.ai/v1")
 META_MODEL = os.environ.get("META_MODEL", "muse-spark-1.2")
 
 
@@ -97,3 +98,34 @@ def extract_code(text):
         code = max(parts[1::2], key=len)
         return code.split("\n", 1)[1] if code.startswith(("python", "py\n")) else code
     return text
+
+
+SNAP_MODEL = os.environ.get("SUBQ_SNAP_MODEL", "subq-snap-1.1")
+SNAP_URL = SUBQ_URL.rsplit("/chat/completions", 1)[0] + "/systemone"
+
+
+def snap(state, questions):
+    """SubQ Snap decision model (POST /v1/systemone): named noul/choice/score questions over a
+    long `state` -> probabilities. Advisory only - AirGuard never lets it decide pass/fail."""
+    body = {"model": SNAP_MODEL, "state": state, "questions": questions}
+    h = key_of(SNAP_URL, SNAP_MODEL, [body])
+    f = CACHE / f"{h}.json"
+    if f.exists():
+        r = json.loads(f.read_text())
+        _log(SNAP_MODEL, r.get("usage", {}), r.get("latency_s", 0), True, len(json.dumps(body)))
+        return r["answers"]
+    key = os.environ.get("SUBQ_API_KEY")
+    if OFFLINE or not key:
+        return None
+    t0 = time.time()
+    resp = requests.post(SNAP_URL, headers={"Authorization": f"Bearer {key}"}, json=body, timeout=120)
+    if resp.status_code != 200:
+        raise RuntimeError(f"{SNAP_MODEL} HTTP {resp.status_code}: {resp.text[:300]}")
+    j = resp.json()
+    u = j.get("usage", {})
+    usage = {"prompt_tokens": u.get("input_tokens", u.get("prompt_tokens")), "completion_tokens": 0}
+    lat = round(time.time() - t0, 2)
+    _log(SNAP_MODEL, usage, lat, False, len(json.dumps(body)))
+    CACHE.mkdir(exist_ok=True)
+    f.write_text(json.dumps({"model": SNAP_MODEL, "answers": j["answers"], "usage": usage, "latency_s": lat}, indent=1))
+    return j["answers"]

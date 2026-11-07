@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "The autonomous baggage tractor has entered the active jet-blast zone directly behind aircraft A7, triggering the red X safety violation inside the orange blast area. This places the tractor in the path of high-velocity jet exhaust, risking loss of control, vehicle damage, and potential collision or debris hazard.",
+ "usage": {
+  "completion_tokens": 746,
+  "prompt_tokens": 889,
+  "total_tokens": 1635,
+  "completion_tokens_details": {
+   "reasoning_tokens": 678
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 7.06
+}

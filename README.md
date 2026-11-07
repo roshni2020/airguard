@@ -15,6 +15,7 @@ AirGuard is that gate. Built for AIE Code Summit 2026, track "Trust but Verify".
 |---|---|---|
 | Implementer | **Meta Muse Spark** (`META_API_KEY`) | writes controller updates from a change request; describes the violation frame (vision) |
 | Verifier | **SubQ** `subq-preview` (`SUBQ_API_KEY`) | long-horizon red team: reads the full FAA AC, the real SFO map, the whole repo and **all previous simulation traces at every 0.1 s step** each round, then designs harder scenarios. It never sees the implementer's prompt, comments or reasoning. |
+| Triage + diff-only baseline | **SubQ Snap** `subq-snap-1.1` (decision model, `POST /v1/systemone`) | returns probabilities, not text: rates the severity of each violation and whether to phone ops (advisory only), and acts as the diff-only reviewer in `baseline.py` |
 | Judge | deterministic Python (`checks.py`) | simulates, measures, and decides PASS/BLOCK. No LLM ever decides. |
 
 `verify.py` runs the loop:
@@ -26,6 +27,13 @@ AirGuard is that gate. Built for AIE Code Summit 2026, track "Trust but Verify".
 6. **Rollback.** `deployed.json` points at the last approved controller and keeps a history. PASS promotes. BLOCK keeps the current controller, and if the blocked file was the deployed one, AirGuard reverts.
 
 Anti-gaming: the floor invariants always apply, and LLM parameters can only *tighten* them (`checks.tighten`). Scenarios and seeds come from the verifier, not the candidate. A tractor that never moves fails `mission_complete`. Meta-written code is AST-sanitised (only `math`/`sim` imports, no `open`/`eval`/dunders) before it runs.
+
+## What SubQ found (live runs)
+
+- **Round 0 (blind spec, 32k prompt tokens):** SubQ read the whole FAA AC, the map and the code. It tightened the invariants (max speed 6.0 m/s, 1 m blast margin, 18 m pushback clearance, fog limit 2.5 m/s below 250 m) and wrote 6 adversarial scenarios. One put debris on the service road, which neither v1 nor v3 could drive around, so v3 got debris avoidance.
+- **Round 1 (420k prompt tokens: every 0.1 s trace step of round 0 plus the 1000-row stress table):** SubQ went after the new code paths. `rt_pushback_close_start` showed v3 being run over by a 60 m pushback while it waited behind the aircraft, and it also caught the *approved* v1 in jet blast. `rt_beacon_lights_inside_blast` showed v3 too slow to leave a zone it was already in when the beacon lit. Both were fixed in v3: it now escapes in the blast zone's own frame and accounts for the zone moving during pushback.
+- **Diff-only review cannot tell a fix from a regression.** SubQ Snap on the diff alone gives v2 P(safe) = 0.001, which is correct, and v3 P(safe) = 0.055, which is wrong: v3 passes every scenario and fails fewer stress scenarios than the approved v1. That evidence only comes from simulation.
+- **Missed deadlines** in scenarios where the approved controller *also* misses the deadline (for example, engines running on the only route until t=150 s) are recorded as `inconclusive`. Safety violations always block.
 
 ## Large-scale stress data, cross-checked with SubQ
 
@@ -76,7 +84,7 @@ and the viewer shows them.
 py -m pip install requests matplotlib
 py selfcheck.py                              # offline: v1 PASS, v2 BLOCK (jet blast + fog), v3 PASS, stand-still BLOCK, reproducible
 py verify.py tugs/tug_v2_ai.py --gif         # live SubQ red team (needs SUBQ_API_KEY), --offline = cache only
-py baseline.py tugs/tug_v2_ai.py             # diff-only reviewer for contrast
+py baseline.py tugs/tug_v3_fixed.py          # diff-only reviewer (SubQ Snap) for contrast
 py meta_implement.py --request "make the route 20% faster" --out tugs/tug_meta_1.py   # needs META_API_KEY
 py verify.py tugs/tug_meta_1.py
 py stress.py --n 1000 tugs/tug_v1.py tugs/tug_v2_ai.py tugs/tug_v3_fixed.py   # large-data comparison
@@ -102,7 +110,7 @@ Optional env: `SUBQ_MODEL`, `SUBQ_URL`, `META_MODEL` (default `muse-spark-1.2`),
 
 - `tugs/tug_v1.py`: hand-written approved baseline (5 m/s, yields to beacons, jet blast, pushback, people; slows in fog).
 - `tugs/tug_v2_ai.py`: **hand-seeded** to simulate a bad AI "optimisation": +20% speed, beacon/engine check removed, no fog slowdown. **Not** written by Meta.
-- `tugs/tug_v3_fixed.py`: **hand-seeded** fix: +20% speed with all checks kept and a longer lookahead. About 13% faster than v1 on the nominal run.
+- `tugs/tug_v3_fixed.py`: **hand-seeded** fix: +20% speed with all checks kept and a longer lookahead. About 13% faster than v1 on the nominal run. It was then **hardened three times in response to live SubQ findings**: debris sidestep, blast-frame escape, and pushback-aware escape.
 - `tugs/tug_meta_*.py`: produced live by Meta through `meta_implement.py`. Each file header records the model, the request and the cache hash.
 
 ## Built today

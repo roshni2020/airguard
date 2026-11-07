@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "The autonomous baggage tractor's track (green) cuts directly through the active jet-blast zone (orange) behind aircraft A7 during engine start, with the red X marking the safety violation at the incursion point. This exposes the tractor to extreme high-velocity exhaust that can destabilize, damage, or violently displace the vehicle and any load.",
+ "usage": {
+  "completion_tokens": 984,
+  "prompt_tokens": 889,
+  "total_tokens": 1873,
+  "completion_tokens_details": {
+   "reasoning_tokens": 905
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 8.03
+}
