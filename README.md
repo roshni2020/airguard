@@ -31,7 +31,7 @@ Anti-gaming: the floor invariants always apply, and LLM parameters can only *tig
 
 `stress.py` generates thousands of seeded random scenarios across all 8 real SFO stands, 4 aircraft
 types, engine starts, pushbacks, fog, GPS noise, crew and debris (1000 scenarios is about 900k simulation steps, or
-25 simulated hours per controller, in about 1 minute on 8 cores). Random scenarios are sometimes impossible for any
+25 simulated hours per controller, in about 1 minute on a laptop). Random scenarios are sometimes impossible for any
 controller, so the gate scores them **differentially**: `verify.py --fuzz N` runs the candidate and the
 approved controller on the same N scenarios and BLOCKs if the candidate fails more of them
 (`stress_noninferiority`). The full per-scenario result table and every regression scenario then go
