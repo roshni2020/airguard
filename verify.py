@@ -259,7 +259,11 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
     spec_source = "subq" if isinstance(spec, dict) else "builtin_floor"
     suite = load_suite() if use_suite else None
     base_params = checks.tighten(suite["invariants"])[0] if suite else None
-    params, rej = checks.tighten(spec.get("invariants") if spec_source == "subq" else None, base_params)
+    proposed_inv = spec.get("invariants") if spec_source == "subq" else None
+    if suite:   # limits are pinned by the versioned suite; SubQ's round-0 limits are logged, not applied
+        params, rej = base_params, []       # (they can only enter the suite through improve.py's held-out test)
+    else:
+        params, rej = checks.tighten(proposed_inv, base_params)
     rejected += rej
     new = []
     if spec_source == "subq":
@@ -349,7 +353,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
         "candidate": rel, "verdict": verdict, "violations": flat,
         "spec_source": spec_source, "invariants": params, "rejected_llm_output": rejected,
         "rounds": log, "scenarios_run": [[r["scenario"] for r in rs] for rs in all_res],
-        "vision": vision, "stress": stress_rep,
+        "vision": vision, "stress": stress_rep, "subq_proposed_invariants": proposed_inv,
+        "suite_version": suite["version"] if suite else None,
         "inconclusive": [{**x, "scenario": r["scenario"]["name"], "round": i, "note": "approved controller also misses the deadline"}
                          for i, rs in enumerate(all_res) for r in rs for x in r["inconclusive"]],
         "hashes": {"candidate": sha(cand_src), "candidate_stripped": sha(strip_comments(cand_src)),
