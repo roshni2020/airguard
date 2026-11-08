@@ -50,6 +50,24 @@
     <tr><td>snap-*</td><td>SubQ Snap 1.1</td><td>reads about 370k tokens of raw traces, triages severity, filters realism, diff-only baseline</td></tr>
     <tr><td>meta-*</td><td>Meta Muse Spark</td><td>writes updates and describes violation frames</td></tr>
     <tr><td>judge</td><td>Python</td><td>the only thing that decides PASS or BLOCK</td></tr></table>
+  <h2>Where the data comes from</h2>
+  <table>
+    <tr><th>data</th><th>source</th><th>status</th></tr>
+    <tr><td>SFO airport map: runways, taxiways, 287 stands, 133 jet bridges, 8 terminals, 3,206 buildings</td>
+        <td><a style="color:var(--accent)" href="https://www.openstreetmap.org/#map=15/37.6189/-122.3790">OpenStreetMap</a> via the Overpass API (<code>data/sfo_osm.json</code>, <code>data/sfo_full_osm.json</code>), &copy; OpenStreetMap contributors, ODbL</td><td>real</td></tr>
+    <tr><td>Safety rules and citations (jet blast, beacons, right-of-way, fog, speed limits)</td>
+        <td><a style="color:var(--accent)" href="https://www.faa.gov/airports/resources/advisory_circulars">FAA Advisory Circular AC 150/5210-20A</a>, <i>Ground Vehicle Operations</i> (2015, public domain), <code>data/faa_ac_150_5210_20A.pdf</code></td><td>real</td></tr>
+    <tr><td>Aircraft size: A320, 737-800, 777-300ER, A350-900</td>
+        <td><a style="color:var(--accent)" href="https://www.faa.gov/airports/engineering/aircraft_char_database">FAA Aircraft Characteristics Database</a> (<code>data/aircraft.json</code>)</td><td>real</td></tr>
+    <tr><td>Engine positions and jet-blast lengths</td><td>Manufacturer Airport Planning documents (Airbus / Boeing)</td><td>approximate</td></tr>
+    <tr><td>Speed limits and clearance distances</td><td>Example values: the FAA AC leaves speed limits to each airport operator</td><td>example</td></tr>
+    <tr><td>Tractors, aircraft schedules, crew, debris, fog, GPS noise</td><td>AirGuard simulator (<code>sim.py</code>, <code>fleet.py</code>), seeded and reproducible</td><td>simulated</td></tr>
+    <tr><td>1,000 random stress scenarios (about 850k simulation steps)</td><td><code>stress.py</code>, seeded</td><td>simulated</td></tr>
+    <tr><td>40+ red-team scenarios and the safety limits</td><td>Written live by SubQ <code>subq-preview</code> after reading the FAA AC, the map and every trace (about 4M tokens read)</td><td>AI-generated, validated</td></tr>
+    <tr><td>One controller update</td><td>Written live by Meta Muse Spark (<code>tugs/tug_meta_1.py</code>): BLOCKED by the gate</td><td>AI-generated</td></tr>
+    <tr><td>Agent call log (tokens, latency, outcomes)</td><td>Recorded from every SubQ, Snap and Meta call (<code>out/calls.jsonl</code>; hashes only, no prompts or keys)</td><td>measured</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--muted)">Background: driverless baggage tractors are in service at Singapore Changi (T1&ndash;T4) and Dubai DWC (dnata), with trials at Amsterdam Schiphol (Aurrigo) and Stuttgart, according to public airport and operator announcements.</p>
   <h2>Real vs simulated</h2>
   <p><b>Real:</b> SFO airport geometry (OpenStreetMap contributors, ODbL), FAA AC 150/5210-20A rules and citations, and aircraft dimensions (FAA Aircraft Characteristics Database).
   <b>Approximate:</b> engine positions and jet-blast lengths. <b>Example values:</b> speed limits and clearances (the FAA leaves them to the airport operator).
