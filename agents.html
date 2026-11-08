@@ -62,7 +62,7 @@ document.getElementById('calls').innerHTML = '<tr><th>time</th><th>agent</th><th
 const el = document.getElementById('g');
 const R = new THREE.WebGLRenderer({ antialias: true }); R.setPixelRatio(Math.min(devicePixelRatio, 2)); el.appendChild(R.domElement);
 const S = new THREE.Scene(), C = new THREE.PerspectiveCamera(50, 1, 1, 1000); C.position.set(0, 26, 62);
-const ctl = new THREE.OrbitControls(C, R.domElement); ctl.autoRotate = true; ctl.autoRotateSpeed = 0.6;
+const ctl = new THREE.OrbitControls(C, R.domElement); ctl.autoRotate = true; ctl.enableDamping = true; ctl.autoRotateSpeed = 0.6;
 S.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1));
 const label = (text, color) => { const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
   x.font = 'bold 30px system-ui'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 256, 32);

@@ -69,13 +69,13 @@ function start(D) {
   const $ = id => document.getElementById(id);
   const V = (x, y, h = 0) => new THREE.Vector3(x, h, -y);
   const renderer = new THREE.WebGLRenderer({ canvas: $('c'), antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0e13);
   scene.fog = new THREE.Fog(0x0b0e13, 3500, 9000);
   const camera = new THREE.PerspectiveCamera(45, 1, 2, 20000);
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.maxPolarAngle = Math.PI * 0.47;
+  controls.maxPolarAngle = Math.PI * 0.47; controls.enableDamping = true; controls.dampingFactor = 0.08;
   scene.add(new THREE.HemisphereLight(0xcfd8e3, 0x10141a, 0.85));
   const sun = new THREE.DirectionalLight(0xffffff, 0.75); sun.position.set(-1500, 2500, 1200); scene.add(sun);
 
@@ -181,7 +181,7 @@ function start(D) {
   const frameAt = tt => D.frames[Math.min(D.frames.length - 1, Math.floor(tt / dtF))];
 
   function update() {
-    const i = Math.min(D.frames.length - 2, Math.floor(t / dtF)), f0 = D.frames[i], f1 = D.frames[i + 1], w = Math.min(1, (t - f0.t) / dtF);
+    const i = Math.max(0, Math.min(D.frames.length - 2, Math.floor(t / dtF))), f0 = D.frames[i], f1 = D.frames[i + 1], w = Math.min(1, (t - f0.t) / dtF);
     const blink = Math.floor(performance.now() / 450) % 2;
     planes.forEach(p => { const st = stateAt(p.a, t), off = pushAt(p.a, t);
       p.g.visible = st !== 'gone';
@@ -189,16 +189,20 @@ function start(D) {
       p.beacon.visible = st !== 'parked' && blink;
       p.blast.visible = st !== 'parked';
       p.blast.material.color.setHex(st === 'beacon_on' ? 0xffc04d : 0xff6a1a); p.blast.material.opacity = st === 'beacon_on' ? 0.2 : 0.38; });
-    let moving = 0;
+    moving = 0;
     bots.forEach((b, k) => { const a = f0.b[k], c = f1.b[k];
       const x = a[0] + (c[0] - a[0]) * w, y = a[1] + (c[1] - a[1]) * w;
       let dh = c[2] - a[2]; dh = Math.atan2(Math.sin(dh), Math.cos(dh));
       b.g.position.copy(V(x, y)); b.g.rotation.y = a[2] + dh * w; if (a[3] > 0.3) moving++;
-      b.carts.forEach((cart, n) => { const q = D.frames[Math.max(0, i - 2 * (n + 1))].b[k]; cart.position.set(q[0], 1.1, -q[1]); }); });
+      b.carts.forEach((cart, n) => { const q0 = D.frames[Math.max(0, i - 2 * (n + 1))].b[k], q1 = D.frames[Math.max(0, i + 1 - 2 * (n + 1))].b[k];
+        cart.position.set(q0[0] + (q1[0] - q0[0]) * w, 1.1, -(q0[1] + (q1[1] - q0[1]) * w)); }); });
     crew.forEach((m, n) => { const a = f0.c[n], c = f1.c[n]; m.position.copy(V(a[0] + (c[0] - a[0]) * w, a[1] + (c[1] - a[1]) * w, 1)); });
     vmarks.forEach((m, n) => m.visible = D.violations[n].t <= t);
     if (follow !== null) { const p = bots[follow].g.position, d = camera.position.clone().sub(controls.target); controls.target.lerp(p, 0.15); camera.position.copy(controls.target).add(d); }
-    // feed + panel
+  }
+  let moving = 0;
+  function updateUI() {
+    const f0 = frameAt(t);
     while (nextEv < events.length && events[nextEv].t <= t) { const e = events[nextEv++]; const d = document.createElement('div');
       d.className = 'ev ' + e.cls; d.innerHTML = `<span class="t">${fmtClock(e.t)}</span>${e.text}`; $('feed').prepend(d); }
     $('clock').textContent = fmtClock(t);
@@ -216,13 +220,13 @@ function start(D) {
       d.querySelector('.done').textContent = `${f0.b[k][3].toFixed(1)} m/s`; });
   }
   function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
-  addEventListener('resize', resize); resize(); setCam('piers'); update();
-  let ui = 0;
+  addEventListener('resize', resize); resize(); setCam('piers'); update(); updateUI();
+  let lastUI = 0;
   (function loop(now) {
     requestAnimationFrame(loop);
-    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = now;
     if (playing) { t += dt * speed; if (t >= T - dtF) { t = 0; nextEv = 0; $('feed').innerHTML = ''; } }
-    if (++ui % 2 === 0 || !playing) update();
+    update(); if (now - lastUI > 250) { lastUI = now; updateUI(); }
     controls.update(); renderer.render(scene, camera);
   })(performance.now());
 }

@@ -67,7 +67,7 @@ function start(R) {
   const V = (x, y, h = 0) => new THREE.Vector3(x, h, -y);     // sim (x east, y north) -> three
   const view = $('view');
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   view.prepend(renderer.domElement);
   const scene = new THREE.Scene();
   const SKY = new THREE.Color(0x0e1116);
@@ -75,7 +75,7 @@ function start(R) {
   const camera = new THREE.PerspectiveCamera(50, 1, 1, 5000);
   camera.position.set(80, 260, 220);
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.target.set(100, 0, 0);
+  controls.target.set(100, 0, 0); controls.enableDamping = true; controls.dampingFactor = 0.08;
   scene.add(new THREE.HemisphereLight(0xdde6f0, 0x1a1f26, 0.9));
   const sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(200, 400, 100); scene.add(sun);
 
@@ -233,9 +233,11 @@ function start(R) {
   selectRun(firstBad >= 0 ? firstBad : 0);
   (function loop(now) {
     requestAnimationFrame(loop);
-    const dt = (now - last) / 1000; last = now;
+    const dt = Math.max(0, (now - last) / 1000); last = now;
     if (playing && run) { acc += dt * +$('speed').value / 0.5;   // frames are 0.5 s apart
       if (acc >= 1) { fi = Math.min(run.frames.length - 1, fi + Math.floor(acc)); acc %= 1; draw(); if (fi === run.frames.length - 1) fi = 0; } }
+    if (run) { const a = run.frames[fi], b = run.frames[Math.min(run.frames.length - 1, fi + 1)], w = playing ? acc : 0;
+      tractor.position.copy(V(a.x + (b.x - a.x) * w, a.y + (b.y - a.y) * w, 0)); }
     controls.update(); renderer.render(scene, camera);
   })(performance.now());
 }
