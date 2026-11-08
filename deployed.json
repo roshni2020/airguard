@@ -20,6 +20,12 @@
    "sha256": "3d7e7665090817679b2dfad2bfad8280395095924d982665c4450776df3da148",
    "event": "PASS -> promoted",
    "verdict_hash": "a2f7305225034d753b788ff127204e120b4906406ecb61ccb074a1e3c11efa70"
+  },
+  {
+   "path": "tugs/tug_meta_1.py",
+   "sha256": "992cfa4df70ebf411ac96e8746e24922eac2e9119694b249bd9fff3b48633b21",
+   "event": "BLOCK -> not deployed",
+   "verdict_hash": "78db799738ba33800a0765198c7ed86ec86ff07facb6026966a8200cdf0d9d66"
   }
  ]
 }
