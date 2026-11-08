@@ -218,8 +218,9 @@ def main():
     bots = []
     for k in range(a.bots):
         home = depots[k % len(depots)]
-        bots.append({"id": k, "x": home[0] + rng.uniform(-3, 3), "y": home[1] + rng.uniform(-3, 3), "hd": rng.uniform(-3, 3), "v": 0.0,
-                     "home": home, "phase": "idle", "wait": rng.uniform(0, 20), "route": None, "ctrl": None, "stand": None,
+        slot = k // len(depots)                     # bots sharing a depot park 12 m apart, depart 15 s apart
+        bots.append({"id": k, "x": home[0] + 12 * slot, "y": home[1] - 12 * slot, "hd": 0.0, "v": 0.0,
+                     "home": home, "phase": "idle", "wait": 2 + 15 * slot + 3 * (k % len(depots)), "route": None, "ctrl": None, "stand": None,
                      "steps": [], "jobs": [], "done": 0, "entered": {}})
 
     def new_job(b, t):

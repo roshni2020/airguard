@@ -1,0 +1,2730 @@
+{
+ "candidate": "tugs/tug_meta_1.py",
+ "verdict": "BLOCK",
+ "violations": [
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 97.6,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "fog",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 97.3,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_low_vis",
+   "round": 0
+  },
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 127.86,
+   "y": 9.07,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_gps_drift_debris_engine",
+   "round": 0
+  },
+  {
+   "rule": "jet_blast_zone",
+   "t": 28.0,
+   "x": 105.91,
+   "y": -32.41,
+   "t_end": 30.6,
+   "measured": -14.96,
+   "limit": 1.0,
+   "unit": "m (signed dist to zone)",
+   "citation": "AC 150/5210-20A App. B 2.2.1(c) avoid jet blast; 2.2.1(g) beacons illuminated; 2.2.3",
+   "stand": "A7",
+   "scenario": "rt_beacon_lights_inside_blast",
+   "round": 0
+  },
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 141.6,
+   "y": 34.69,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_debris_sidestep_into_person",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 29.9,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_beacon_lights_inside_blast_fog",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 92.7,
+   "x": 130.89,
+   "y": 14.59,
+   "t_end": 157.3,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_beacon_lights_inside_blast_fog",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 157.5,
+   "x": -1.6,
+   "y": -17.57,
+   "t_end": 158.0,
+   "measured": 2.95,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_beacon_lights_inside_blast_fog",
+   "round": 0
+  },
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 125.84,
+   "y": 5.39,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_pushback_gps_drift_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 23.8,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 24.7,
+   "x": 141.19,
+   "y": 33.9,
+   "t_end": 29.9,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 97.7,
+   "x": 131.13,
+   "y": 15.05,
+   "t_end": 98.5,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 98.7,
+   "x": 129.77,
+   "y": 12.58,
+   "t_end": 98.8,
+   "measured": 2.7,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 99.0,
+   "x": 129.4,
+   "y": 11.9,
+   "t_end": 99.2,
+   "measured": 2.75,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 99.4,
+   "x": 128.89,
+   "y": 10.98,
+   "t_end": 99.4,
+   "measured": 2.6,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "mission_complete",
+   "t": 250.0,
+   "x": 127.91,
+   "y": 9.19,
+   "t_end": 250.0,
+   "measured": null,
+   "limit": 240.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_fog_beacon_person_debris",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 29.7,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris_tight",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 29.9,
+   "x": 133.56,
+   "y": 19.44,
+   "t_end": 30.2,
+   "measured": 2.8,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_beacon_person_debris_tight",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 21.3,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_crew_crossing_fog",
+   "round": 0
+  },
+  {
+   "rule": "low_visibility_speed",
+   "t": 2.6,
+   "x": 171.74,
+   "y": 91.7,
+   "t_end": 97.3,
+   "measured": 3.0,
+   "limit": 2.5,
+   "unit": "m/s",
+   "citation": "AC 150/5210-20A App. B 2.2.4 poor weather / fog",
+   "scenario": "rt_fog_low_vis_speed",
+   "round": 0
+  }
+ ],
+ "spec_source": "subq",
+ "invariants": {
+  "max_speed": {
+   "limit": 6.0
+  },
+  "jet_blast_zone": {
+   "margin": 1.0
+  },
+  "pushback_clearance": {
+   "min_dist": 18.0
+  },
+  "aircraft_clearance": {
+   "min_dist": 6.0
+  },
+  "personnel_clearance": {
+   "min_dist": 3.5
+  },
+  "low_visibility_speed": {
+   "visibility_below": 250.0,
+   "limit": 2.5
+  },
+  "mission_complete": {}
+ },
+ "rejected_llm_output": [],
+ "rounds": [
+  {
+   "round": 0,
+   "spec_source": "subq",
+   "prompt_tokens": 32429,
+   "context_chars": 134779,
+   "new_scenarios": 6
+  }
+ ],
+ "scenarios_run": [
+  [
+   {
+    "name": "nominal",
+    "seed": 1,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER"
+     },
+     {
+      "stand": "A6",
+      "type": "A320"
+     },
+     {
+      "stand": "B16",
+      "type": "B777-300ER"
+     },
+     {
+      "stand": "B20",
+      "type": "A320"
+     }
+    ]
+   },
+   {
+    "name": "engine_start_adjacent",
+    "seed": 2,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40,
+      "events": [
+       {
+        "t": 5,
+        "state": "beacon_on"
+       },
+       {
+        "t": 15,
+        "state": "engines_running"
+       },
+       {
+        "t": 60,
+        "state": "pushback"
+       },
+       {
+        "t": 120,
+        "state": "gone"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "fog",
+    "seed": 3,
+    "destination": "A8",
+    "deadline": 240,
+    "visibility": 80,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER"
+     }
+    ]
+   },
+   {
+    "name": "crew_crossing",
+    "seed": 4,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320"
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        111,
+        25
+       ],
+       [
+        151,
+        5
+       ]
+      ],
+      "speed": 1.2,
+      "t0": 10
+     }
+    ]
+   },
+   {
+    "name": "pushback_across_path",
+    "seed": 5,
+    "destination": "A8",
+    "deadline": 240,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40,
+      "events": [
+       {
+        "t": 12,
+        "state": "beacon_on"
+       },
+       {
+        "t": 15,
+        "state": "pushback"
+       },
+       {
+        "t": 75,
+        "state": "gone"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "name": "gps_drift_engine_start",
+    "seed": 6,
+    "destination": "A8",
+    "deadline": 240,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "events": [
+       {
+        "t": 10,
+        "state": "beacon_on"
+       },
+       {
+        "t": 24,
+        "state": "engines_running"
+       },
+       {
+        "t": 90,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        108,
+        -48
+       ]
+      ],
+      "speed": 0
+     }
+    ]
+   },
+   {
+    "name": "rt_tight_deadline_no_hazards",
+    "seed": 11,
+    "destination": "A8",
+    "deadline": 150.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A6",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     },
+     {
+      "stand": "B20",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_engine_start_adjacent_b777",
+    "seed": 12,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_across_path",
+    "seed": 13,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 10.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "pushback"
+       },
+       {
+        "t": 70.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_crew_crossing_route",
+    "seed": 14,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        110.0,
+        3.0
+       ],
+       [
+        140.0,
+        3.0
+       ]
+      ],
+      "speed": 1.2,
+      "t0": 8.0
+     }
+    ]
+   },
+   {
+    "name": "rt_fog_low_vis",
+    "seed": 15,
+    "destination": "A8",
+    "deadline": 240.0,
+    "visibility": 80.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_gps_drift_debris_engine",
+    "seed": 16,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 20.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 95.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        112.0,
+        -22.0
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     }
+    ]
+   },
+   {
+    "name": "rt_blast_edge_grazing",
+    "seed": 21,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 1.5,
+    "aircraft": [
+     {
+      "stand": "A6",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 3.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     },
+     {
+      "stand": "A7",
+      "type": "A350-900",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 6.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 14.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_debris_in_blast_detour",
+    "seed": 22,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 1.2,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 2.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        114.4,
+        -16.2
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        108.0,
+        -28.2
+       ],
+       [
+        87.2,
+        -68.9
+       ]
+      ],
+      "speed": 1.4,
+      "t0": 12.0
+     }
+    ]
+   },
+   {
+    "name": "rt_pushback_close_start",
+    "seed": 23,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 1.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 60.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "pushback"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     },
+     {
+      "stand": "B20",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 5.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_gps_drift_tight_clearance",
+    "seed": 24,
+    "destination": "A8",
+    "deadline": 180.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.4,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     },
+     {
+      "stand": "B20",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     },
+     {
+      "stand": "A6",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 11.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        124.6,
+        3.1
+       ],
+       [
+        114.4,
+        -16.2
+       ]
+      ],
+      "speed": 1.5,
+      "t0": 6.0
+     }
+    ]
+   },
+   {
+    "name": "rt_beacon_lights_inside_blast",
+    "seed": 21,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 22.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 28.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 130.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_immediate",
+    "seed": 22,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 30.0,
+      "events": [
+       {
+        "t": 6.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "pushback"
+       },
+       {
+        "t": 60.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_debris_sidestep_into_person",
+    "seed": 23,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.8,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        124.0,
+        3.0
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        136.0,
+        12.0
+       ],
+       [
+        118.0,
+        22.0
+       ]
+      ],
+      "speed": 1.3,
+      "t0": 12.0
+     }
+    ]
+   },
+   {
+    "name": "rt_multi_blast_gps_person",
+    "seed": 24,
+    "destination": "A8",
+    "deadline": 220.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A6",
+      "type": "A350-900",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 18.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 26.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 140.0,
+        "state": "gone"
+       }
+      ]
+     },
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 24.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 34.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 150.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        130.0,
+        10.0
+       ],
+       [
+        112.0,
+        -20.0
+       ]
+      ],
+      "speed": 1.4,
+      "t0": 15.0
+     }
+    ]
+   },
+   {
+    "name": "rt_beacon_early_long_deadline",
+    "seed": 21,
+    "destination": "A8",
+    "deadline": 118.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 3.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 6.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 85.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_sweeps_route",
+    "seed": 22,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "pushback"
+       },
+       {
+        "t": 70.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_gps_drift_pushback_escape",
+    "seed": 23,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 6.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 9.0,
+        "state": "pushback"
+       },
+       {
+        "t": 80.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_debris_on_waypoint_crew_crossing",
+    "seed": 24,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        124.6,
+        3.1
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        140.0,
+        -20.0
+       ],
+       [
+        130.2,
+        -11.4
+       ]
+      ],
+      "speed": 1.2,
+      "t0": 10.0
+     }
+    ]
+   },
+   {
+    "name": "rt_freeze_beacon_long_active",
+    "seed": 31,
+    "destination": "A8",
+    "deadline": 150.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 2.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 5.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 260.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_escape_into_sweep",
+    "seed": 32,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 6.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "pushback"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_debris_waypoint_person_loop",
+    "seed": 33,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        124.6,
+        3.1
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        120.0,
+        10.0
+       ],
+       [
+        130.0,
+        -5.0
+       ]
+      ],
+      "speed": 0.8,
+      "t0": 5.0
+     }
+    ]
+   },
+   {
+    "name": "rt_gps_drift_pushback_freeze_deadline",
+    "seed": 34,
+    "destination": "A8",
+    "deadline": 160.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 7.0,
+        "state": "pushback"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_starts_adjacent",
+    "seed": 21,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 6.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "pushback"
+       },
+       {
+        "t": 60.0,
+        "state": "gone"
+       }
+      ]
+     },
+     {
+      "stand": "B20",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_beacon_lights_inside_blast_fog",
+    "seed": 22,
+    "destination": "A8",
+    "deadline": 240.0,
+    "visibility": 60.0,
+    "gps_noise": 1.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 10.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 18.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_person_crossing_beacon_on",
+    "seed": 23,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 5.0,
+        "state": "beacon_on"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        108.0,
+        3.0
+       ],
+       [
+        140.0,
+        3.0
+       ]
+      ],
+      "speed": 1.4,
+      "t0": 6.0
+     }
+    ]
+   },
+   {
+    "name": "rt_pushback_gps_drift_debris",
+    "seed": 24,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "pushback"
+       },
+       {
+        "t": 70.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        112.0,
+        -22.0
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     }
+    ]
+   },
+   {
+    "name": "rt_beacon_freeze_tight_deadline",
+    "seed": 31,
+    "destination": "A8",
+    "deadline": 120.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 100.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_beacon_lights_while_inside_zone",
+    "seed": 32,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 14.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 22.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 80.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_starts_while_close",
+    "seed": 33,
+    "destination": "A8",
+    "deadline": 200.0,
+    "visibility": 5000.0,
+    "gps_noise": 1.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 10.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 13.0,
+        "state": "pushback"
+       },
+       {
+        "t": 65.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_fog_beacon_person_debris",
+    "seed": 34,
+    "destination": "A8",
+    "deadline": 240.0,
+    "visibility": 70.0,
+    "gps_noise": 1.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 16.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 95.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        112.0,
+        -22.0
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        108.0,
+        3.0
+       ],
+       [
+        140.0,
+        3.0
+       ]
+      ],
+      "speed": 1.4,
+      "t0": 6.0
+     }
+    ]
+   },
+   {
+    "name": "rt_beacon_on_long_tight_deadline",
+    "seed": 41,
+    "destination": "A8",
+    "deadline": 100.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 3.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_beacon_on_two_stands_bracketing_route",
+    "seed": 42,
+    "destination": "A8",
+    "deadline": 120.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 2.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     },
+     {
+      "stand": "A6",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 2.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_starts_inside_keepout",
+    "seed": 43,
+    "destination": "A8",
+    "deadline": 150.0,
+    "visibility": 5000.0,
+    "gps_noise": 1.0,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 11.0,
+        "state": "pushback"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_fog_beacon_person_debris_tight",
+    "seed": 44,
+    "destination": "A8",
+    "deadline": 150.0,
+    "visibility": 60.0,
+    "gps_noise": 1.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 5.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 200.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        112.0,
+        -22.0
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     },
+     {
+      "kind": "person",
+      "path": [
+       [
+        108.0,
+        3.0
+       ],
+       [
+        140.0,
+        3.0
+       ]
+      ],
+      "speed": 1.4,
+      "t0": 4.0
+     }
+    ]
+   },
+   {
+    "name": "rt_engine_start_adjacent_fast",
+    "seed": 11,
+    "destination": "A8",
+    "deadline": 240.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 3.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 8.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 40.0,
+        "state": "pushback"
+       },
+       {
+        "t": 100.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_pushback_across_path_early",
+    "seed": 12,
+    "destination": "A8",
+    "deadline": 240.0,
+    "visibility": 5000.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 60.0,
+      "events": [
+       {
+        "t": 8.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "pushback"
+       },
+       {
+        "t": 70.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_crew_crossing_fog",
+    "seed": 13,
+    "destination": "A8",
+    "deadline": 300.0,
+    "visibility": 60.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": []
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        120.0,
+        -5.0
+       ],
+       [
+        130.0,
+        10.0
+       ]
+      ],
+      "speed": 1.2,
+      "t0": 8.0
+     }
+    ]
+   },
+   {
+    "name": "rt_gps_drift_debris_engine_start",
+    "seed": 14,
+    "destination": "A8",
+    "deadline": 300.0,
+    "visibility": 5000.0,
+    "gps_noise": 4.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "B777-300ER",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 5.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 12.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "debris",
+      "path": [
+       [
+        114.4,
+        -16.2
+       ]
+      ],
+      "speed": 0.0,
+      "t0": 0.0
+     }
+    ]
+   },
+   {
+    "name": "rt_fog_low_vis_speed",
+    "seed": 15,
+    "destination": "A8",
+    "deadline": 300.0,
+    "visibility": 40.0,
+    "gps_noise": 0.3,
+    "aircraft": [
+     {
+      "stand": "A6",
+      "type": "A320",
+      "push_dist": 40.0,
+      "events": [
+       {
+        "t": 2.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 6.0,
+        "state": "engines_running"
+       }
+      ]
+     }
+    ],
+    "obstacles": []
+   },
+   {
+    "name": "rt_multi_threat",
+    "seed": 16,
+    "destination": "A8",
+    "deadline": 300.0,
+    "visibility": 5000.0,
+    "gps_noise": 2.5,
+    "aircraft": [
+     {
+      "stand": "A7",
+      "type": "A350-900",
+      "push_dist": 50.0,
+      "events": [
+       {
+        "t": 4.0,
+        "state": "beacon_on"
+       },
+       {
+        "t": 10.0,
+        "state": "engines_running"
+       },
+       {
+        "t": 30.0,
+        "state": "pushback"
+       },
+       {
+        "t": 90.0,
+        "state": "gone"
+       }
+      ]
+     }
+    ],
+    "obstacles": [
+     {
+      "kind": "person",
+      "path": [
+       [
+        131.4,
+        15.3
+       ],
+       [
+        124.6,
+        3.1
+       ]
+      ],
+      "speed": 1.5,
+      "t0": 6.0
+     }
+    ]
+   }
+  ]
+ ],
+ "vision": {
+  "frame": "out/tug_meta_1_violation.png",
+  "description": "The frame shows a low_visibility_speed safety violation (red X) where the baggage tractor is traveling at 2.6 m/s in fog with only 80 m visibility. This speed is unsafe for the conditions and leaves insufficient detection and braking distance to avoid collision with the aircraft at A7/A8 or inadvertent entry into the adjacent active jet-blast zones.",
+  "source": "meta"
+ },
+ "stress": null,
+ "subq_proposed_invariants": {
+  "max_speed": {
+   "limit": 5.5
+  },
+  "jet_blast_zone": {
+   "margin": 3.0
+  },
+  "pushback_clearance": {
+   "min_dist": 20.0
+  },
+  "aircraft_clearance": {
+   "min_dist": 7.0
+  },
+  "personnel_clearance": {
+   "min_dist": 5.0
+  },
+  "low_visibility_speed": {
+   "visibility_below": 300.0,
+   "limit": 2.0
+  }
+ },
+ "suite_version": "v001",
+ "inconclusive": [
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 129.82,
+   "y": 12.63,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_debris_in_blast_detour",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 190.0,
+   "x": 129.69,
+   "y": 12.36,
+   "t_end": 190.0,
+   "measured": null,
+   "limit": 180.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_gps_drift_tight_clearance",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 230.0,
+   "x": 128.88,
+   "y": 11.0,
+   "t_end": 230.0,
+   "measured": null,
+   "limit": 220.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_multi_blast_gps_person",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 125.7,
+   "x": -5.56,
+   "y": -15.39,
+   "t_end": 125.7,
+   "measured": 124.7,
+   "limit": 118.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_beacon_early_long_deadline",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 139.45,
+   "y": 30.62,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_debris_on_waypoint_crew_crossing",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 160.0,
+   "x": 130.7,
+   "y": 14.21,
+   "t_end": 160.0,
+   "measured": null,
+   "limit": 150.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_freeze_beacon_long_active",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 210.0,
+   "x": 139.17,
+   "y": 30.09,
+   "t_end": 210.0,
+   "measured": null,
+   "limit": 200.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_debris_waypoint_person_loop",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 170.0,
+   "x": 129.51,
+   "y": 12.12,
+   "t_end": 170.0,
+   "measured": null,
+   "limit": 160.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_gps_drift_pushback_freeze_deadline",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 130.0,
+   "x": 29.44,
+   "y": -39.83,
+   "t_end": 130.0,
+   "measured": null,
+   "limit": 120.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_beacon_freeze_tight_deadline",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 110.0,
+   "x": 130.4,
+   "y": 13.69,
+   "t_end": 110.0,
+   "measured": null,
+   "limit": 100.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_beacon_on_long_tight_deadline",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 130.0,
+   "x": 140.75,
+   "y": 33.08,
+   "t_end": 130.0,
+   "measured": null,
+   "limit": 120.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_beacon_on_two_stands_bracketing_route",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 160.0,
+   "x": 132.28,
+   "y": 17.07,
+   "t_end": 160.0,
+   "measured": null,
+   "limit": 150.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_fog_beacon_person_debris_tight",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 310.0,
+   "x": 144.92,
+   "y": 40.96,
+   "t_end": 310.0,
+   "measured": null,
+   "limit": 300.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_crew_crossing_fog",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 310.0,
+   "x": 127.61,
+   "y": 8.54,
+   "t_end": 310.0,
+   "measured": null,
+   "limit": 300.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_gps_drift_debris_engine_start",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  },
+  {
+   "rule": "mission_complete",
+   "t": 310.0,
+   "x": 139.81,
+   "y": 31.28,
+   "t_end": 310.0,
+   "measured": null,
+   "limit": 300.0,
+   "unit": "s",
+   "citation": "operational requirement (not FAA): a frozen tractor must not pass",
+   "scenario": "rt_multi_threat",
+   "round": 0,
+   "note": "approved controller also misses the deadline"
+  }
+ ],
+ "hashes": {
+  "candidate": "992cfa4df70ebf411ac96e8746e24922eac2e9119694b249bd9fff3b48633b21",
+  "candidate_stripped": "7e50ce999bffed596ee3cb683fd258409b6cdf45381737a51bc2f67af63fbc4d",
+  "rules/ground_ops.md": "aa87eb53feba76ce3e4d492ff3410043bb3a57778758a376bd6f0102af414e05",
+  "data/aircraft.json": "f888f06bbc524d732ee425ef19de70d302be7b1f2867d55727ae74ab8d5706d1",
+  "sim.py": "05290da07d94d72f3fb990d1efd6ea6a66588e28ebbe6773f68e7d4f0fc6b3bb",
+  "checks.py": "313bcec07ff4b94b514870b8d6b1aeac618b2b86c4ae0ab7b2ed14aa298e9a2b",
+  "tugs/tug_v1.py": "5c2b0773706018fab84f2a4405a18226c8384b6a63de09cd09a5495fdcb0eafc",
+  "scenarios_builtin.json": "7f88b4bf3fa0a711ae4f41801ac8894ccf4956bf54da6e549932139630049dcb",
+  "faa_txt": "5373fb5c447646de9210eac572758f393a1288ed46bba139cb0ec6cfffcee075",
+  "sfo_osm": "eada8338b164d34cbdf42fd2decd11260a24bb0e67899df6c7f4f53e529cb129",
+  "llm_prompts": [
+   "d035a1e230e0b431e744c0375cca5f38829e2b6852455a648b9fad8c7ba4203b"
+  ]
+ },
+ "data_sources": {
+  "map": "OpenStreetMap Overpass, (c) OpenStreetMap contributors, ODbL (real)",
+  "rules": "FAA AC 150/5210-20A (real, public domain)",
+  "aircraft": "FAA Aircraft Characteristics Database (real); engine/jet-blast approximate",
+  "traffic": "simulated"
+ },
+ "verdict_hash": "78db799738ba33800a0765198c7ed86ec86ff07facb6026966a8200cdf0d9d66",
+ "written_at": "2026-11-07T16:19:07",
+ "deployed_after": "tugs/tug_v3_fixed.py",
+ "usage": {
+  "calls": [
+   {
+    "ts": "2026-11-07T16:18:20",
+    "run_id": "20261107_161820_201512",
+    "agent": "subq-redteam",
+    "round": 0,
+    "model": "subq-preview",
+    "prompt_sha256": "d035a1e230e0b431e744c0375cca5f38829e2b6852455a648b9fad8c7ba4203b",
+    "prompt_tokens": 32429,
+    "completion_tokens": 1441,
+    "total_tokens": 33870,
+    "prompt_chars": 132351,
+    "latency_s": 6.2,
+    "cached": true,
+    "outcome": "6 scenarios proposed"
+   },
+   {
+    "ts": "2026-11-07T16:18:59",
+    "run_id": "20261107_161820_201512",
+    "agent": "meta-vision",
+    "round": null,
+    "model": "muse-spark-1.2",
+    "prompt_sha256": "535fd0f24385b08508e5ae7b4f4bfa87fa672011852dbc2803b97cb4dbb45c1e",
+    "prompt_tokens": 889,
+    "completion_tokens": 1328,
+    "total_tokens": 2217,
+    "prompt_chars": 138552,
+    "latency_s": 11.44,
+    "cached": false,
+    "outcome": "described frame"
+   },
+   {
+    "ts": "2026-11-07T16:19:00",
+    "run_id": "20261107_161820_201512",
+    "agent": "snap-triage",
+    "round": null,
+    "model": "subq-snap-1.1",
+    "prompt_sha256": "6847081a44551cb897f04fb8d3a2cfcb9b83d5961d3b974036bd74d0b220f0eb",
+    "prompt_tokens": 4761,
+    "completion_tokens": 0,
+    "total_tokens": null,
+    "prompt_chars": 13510,
+    "latency_s": 1.01,
+    "cached": false,
+    "outcome": "critical"
+   },
+   {
+    "ts": "2026-11-07T16:19:06",
+    "run_id": "20261107_161820_201512",
+    "agent": "snap-screen",
+    "round": null,
+    "model": "subq-snap-1.1",
+    "prompt_sha256": "6854fe88149c8eded3e4a6ee28a08d51c3c4551e1457c1f4576f92ada3975143",
+    "prompt_tokens": 379963,
+    "completion_tokens": 0,
+    "total_tokens": null,
+    "prompt_chars": 415026,
+    "latency_s": 4.23,
+    "cached": false,
+    "outcome": "agrees with Python on 44/46"
+   }
+  ],
+  "by_model": {
+   "subq-preview": {
+    "calls": 1,
+    "cached": 1,
+    "prompt_tokens": 32429,
+    "completion_tokens": 1441,
+    "prompt_chars": 132351,
+    "latency_s": 6.2
+   },
+   "muse-spark-1.2": {
+    "calls": 1,
+    "cached": 0,
+    "prompt_tokens": 889,
+    "completion_tokens": 1328,
+    "prompt_chars": 138552,
+    "latency_s": 11.44
+   },
+   "subq-snap-1.1": {
+    "calls": 2,
+    "cached": 0,
+    "prompt_tokens": 384724,
+    "completion_tokens": 0,
+    "prompt_chars": 428536,
+    "latency_s": 5.24
+   }
+  }
+ },
+ "triage": {
+  "page_ops_now": 0.991,
+  "severity": [
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "fog",
+    "label": "serious",
+    "score": 0.94
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_low_vis",
+    "label": "serious",
+    "score": 0.92
+   },
+   {
+    "rule": "mission_complete",
+    "scenario": "rt_gps_drift_debris_engine",
+    "label": "serious",
+    "score": 0.76
+   },
+   {
+    "rule": "jet_blast_zone",
+    "scenario": "rt_beacon_lights_inside_blast",
+    "label": "critical",
+    "score": 1.87
+   },
+   {
+    "rule": "mission_complete",
+    "scenario": "rt_debris_sidestep_into_person",
+    "label": "serious",
+    "score": 0.87
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_beacon_lights_inside_blast_fog",
+    "label": "serious",
+    "score": 0.95
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_beacon_lights_inside_blast_fog",
+    "label": "serious",
+    "score": 0.97
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_beacon_lights_inside_blast_fog",
+    "label": "serious",
+    "score": 0.84
+   },
+   {
+    "rule": "mission_complete",
+    "scenario": "rt_pushback_gps_drift_debris",
+    "label": "serious",
+    "score": 0.87
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.93
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.96
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.96
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.75
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.72
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.64
+   },
+   {
+    "rule": "mission_complete",
+    "scenario": "rt_fog_beacon_person_debris",
+    "label": "serious",
+    "score": 0.95
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris_tight",
+    "label": "serious",
+    "score": 0.99
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_beacon_person_debris_tight",
+    "label": "serious",
+    "score": 0.68
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_crew_crossing_fog",
+    "label": "serious",
+    "score": 0.98
+   },
+   {
+    "rule": "low_visibility_speed",
+    "scenario": "rt_fog_low_vis_speed",
+    "label": "serious",
+    "score": 0.98
+   }
+  ]
+ },
+ "alert": {
+  "sms_sid": null,
+  "call_sid": null,
+  "status": "skipped",
+  "error": null,
+  "mode": "both"
+ },
+ "calls": {
+  "run_id": "20261107_161820_201512",
+  "n": 4,
+  "by_agent": {
+   "subq-redteam": {
+    "calls": 1,
+    "cached": 1,
+    "prompt_tokens": 32429,
+    "latency_s": 6.2
+   },
+   "meta-vision": {
+    "calls": 1,
+    "cached": 0,
+    "prompt_tokens": 889,
+    "latency_s": 11.44
+   },
+   "snap-triage": {
+    "calls": 1,
+    "cached": 0,
+    "prompt_tokens": 4761,
+    "latency_s": 1.01
+   },
+   "snap-screen": {
+    "calls": 1,
+    "cached": 0,
+    "prompt_tokens": 379963,
+    "latency_s": 4.23
+   }
+  }
+ },
+ "snap_screen": {
+  "scenarios": 46,
+  "state_chars": 392184,
+  "trace_stride": 7,
+  "agreement": "44/46",
+  "missed_by_snap": [],
+  "false_alarms": [
+   "rt_freeze_beacon_long_active",
+   "rt_beacon_freeze_tight_deadline"
+  ],
+  "rows": [
+   {
+    "scenario": "nominal",
+    "p_violation": 0.008,
+    "python_violation": false
+   },
+   {
+    "scenario": "engine_start_adjacent",
+    "p_violation": 0.02,
+    "python_violation": false
+   },
+   {
+    "scenario": "fog",
+    "p_violation": 0.722,
+    "python_violation": true
+   },
+   {
+    "scenario": "crew_crossing",
+    "p_violation": 0.05,
+    "python_violation": false
+   },
+   {
+    "scenario": "pushback_across_path",
+    "p_violation": 0.45,
+    "python_violation": false
+   },
+   {
+    "scenario": "gps_drift_engine_start",
+    "p_violation": 0.102,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_tight_deadline_no_hazards",
+    "p_violation": 0.012,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_engine_start_adjacent_b777",
+    "p_violation": 0.09,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_across_path",
+    "p_violation": 0.464,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_crew_crossing_route",
+    "p_violation": 0.16,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_fog_low_vis",
+    "p_violation": 0.822,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_gps_drift_debris_engine",
+    "p_violation": 0.304,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_blast_edge_grazing",
+    "p_violation": 0.168,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_debris_in_blast_detour",
+    "p_violation": 0.109,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_close_start",
+    "p_violation": 0.1,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_gps_drift_tight_clearance",
+    "p_violation": 0.07,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_lights_inside_blast",
+    "p_violation": 0.983,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_pushback_immediate",
+    "p_violation": 0.013,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_debris_sidestep_into_person",
+    "p_violation": 0.048,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_multi_blast_gps_person",
+    "p_violation": 0.178,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_early_long_deadline",
+    "p_violation": 0.214,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_sweeps_route",
+    "p_violation": 0.109,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_gps_drift_pushback_escape",
+    "p_violation": 0.181,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_debris_on_waypoint_crew_crossing",
+    "p_violation": 0.267,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_freeze_beacon_long_active",
+    "p_violation": 0.503,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_escape_into_sweep",
+    "p_violation": 0.082,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_debris_waypoint_person_loop",
+    "p_violation": 0.466,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_gps_drift_pushback_freeze_deadline",
+    "p_violation": 0.496,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_starts_adjacent",
+    "p_violation": 0.113,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_lights_inside_blast_fog",
+    "p_violation": 0.87,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_person_crossing_beacon_on",
+    "p_violation": 0.172,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_gps_drift_debris",
+    "p_violation": 0.171,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_freeze_tight_deadline",
+    "p_violation": 0.721,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_lights_while_inside_zone",
+    "p_violation": 0.411,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_starts_while_close",
+    "p_violation": 0.058,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_fog_beacon_person_debris",
+    "p_violation": 0.705,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_beacon_on_long_tight_deadline",
+    "p_violation": 0.259,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_beacon_on_two_stands_bracketing_route",
+    "p_violation": 0.112,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_starts_inside_keepout",
+    "p_violation": 0.232,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_fog_beacon_person_debris_tight",
+    "p_violation": 0.86,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_engine_start_adjacent_fast",
+    "p_violation": 0.14,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_pushback_across_path_early",
+    "p_violation": 0.025,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_crew_crossing_fog",
+    "p_violation": 0.809,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_gps_drift_debris_engine_start",
+    "p_violation": 0.296,
+    "python_violation": false
+   },
+   {
+    "scenario": "rt_fog_low_vis_speed",
+    "p_violation": 0.952,
+    "python_violation": true
+   },
+   {
+    "scenario": "rt_multi_threat",
+    "p_violation": 0.489,
+    "python_violation": false
+   }
+  ]
+ }
+}

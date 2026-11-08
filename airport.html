@@ -41,6 +41,7 @@
 <nav style="position:fixed;left:50%;transform:translateX(-50%);bottom:46px;z-index:20;display:flex;gap:14px;padding:6px 14px;background:rgba(18,22,29,.92);border:1px solid #28303b;border-radius:8px;font:12px system-ui"><a href="about.html" style="color:#8b949e;text-decoration:none">About</a><a href="airport.html" style="color:#8b949e;text-decoration:none">Fleet 3D</a><a href="viewer.html#out/replay_tug_v3_fixed.js" style="color:#8b949e;text-decoration:none">Gate evidence</a><a href="agents.html" style="color:#8b949e;text-decoration:none">Agents</a></nav>
 <canvas id="c"></canvas>
 <div id="top" class="panel">
+  <a href="about.html" style="background:#1f6feb;color:#fff;text-decoration:none;padding:5px 12px;border-radius:6px;font-weight:600">&larr; Home</a>
   <h1><b>AirGuard</b> &middot; SFO autonomous baggage fleet</h1>
   <span id="clock">08:00:00</span>
   <div class="seg" id="speed"><button data-s="1">1x</button><button data-s="5" class="on">5x</button><button data-s="20">20x</button></div>
@@ -51,6 +52,7 @@
 <div id="side" class="panel">
   <h2>Fleet</h2><div id="stats"></div>
   <h2>Bots (click to follow)</h2><div id="bots"></div>
+  <h2>What the fleet twin found</h2><div id="findings" style="padding:0 14px;font-size:12px;color:#c9d1d9"></div>
   <h2>Live events</h2><div id="feed"></div><div style="margin:12px 14px;padding:8px 10px;border:1px solid #28303b;border-radius:6px;font-size:12px;color:#8b949e"><b style="color:#e6edf3">Team</b><br>roshni2020 (github.com/roshni2020)<br><b style="color:#e6edf3">Track</b> Trust but Verify &middot; AIE Code Summit 2026<br><b style="color:#e6edf3">Sponsors used</b> Subquadratic (SubQ, Snap), Meta (Muse Spark)</div>
 </div>
 <div id="legend" class="panel"><i style="background:#2ea043"></i>tractor<i style="background:#e6edf3"></i>aircraft<i style="background:#ffc04d"></i>beacon on<i style="background:#ff6a1a"></i>jet blast live<i style="background:#bc8cff"></i>crew<i style="background:#f85149"></i>safety finding<span style="margin-left:10px">Map &copy; OpenStreetMap contributors (ODbL) &middot; fleet, schedules, crew simulated</span></div>
@@ -161,6 +163,11 @@ function start(D) {
 
   // ---------- UI ----------
   const M = D.meta;
+  const byRule = r => D.violations.filter(v => v.rule === r).length;
+  $('findings').innerHTML = `The gate certified <b>one</b> robot. Running <b>${bots.length}</b> together on the whole airport surfaced hazard types the gate does not test yet:<br>
+    &bull; <b style="color:#ffa198">${byRule('personnel_clearance')}</b> close passes (&lt;3 m) between robots / crew: fleet coordination<br>
+    &bull; <b style="color:#ffa198">${byRule('aircraft_clearance')}</b> close passes to a <i>neighbouring</i> aircraft while at or leaving a stand<br>
+    <span style="color:#8b949e">These are inputs for the next gate version, not hidden. The single-robot gate result is in Gate evidence.</span>`;
   $('badge').innerHTML = `controller <b>${M.controller.split('/').pop()}</b> &middot; approved by the AirGuard gate`;
   const T = M.seconds, dtF = D.frames[1].t - D.frames[0].t;
   let t = 0, speed = 5, playing = true, follow = null, nextEv = 0, last = performance.now();
@@ -214,7 +221,7 @@ function start(D) {
       <div class="stat"><b>${D.aircraft.length}</b><span>aircraft</span></div>
       <div class="stat"><b style="color:${active ? 'var(--warn)' : 'inherit'}">${active}</b><span>engines / pushback</span></div>
       <div class="stat"><b>${Object.keys(D.map.stands).length}</b><span>real stands</span></div>
-      <div class="stat"><b style="color:${found ? 'var(--bad)' : 'var(--ok)'}">${found}</b><span>safety findings</span></div>`;
+      <div class="stat"><b style="color:${found ? 'var(--bad)' : 'var(--ok)'}">${found}</b><span>fleet findings</span></div>`;
     document.querySelectorAll('.bot').forEach((d, k) => { const ph = f0.b[k][4];
       d.querySelector('.st').innerHTML = `<span class="dot" style="background:${PCOL[ph]}"></span>${PHASE[ph]}${f0.b[k][3] < 0.3 && (ph === 1 || ph === 3) ? ' <span style="color:var(--warn)">(holding)</span>' : ''}`;
       d.querySelector('.done').textContent = `${f0.b[k][3].toFixed(1)} m/s`; });

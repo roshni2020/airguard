@@ -228,7 +228,7 @@ function start(R) {
 
   // ---- side panel: verdict, SubQ cross-check, usage ----
   const M = R.meta, esc = t => String(t ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-  let html = `<h1>AirGuard</h1><div class="muted">Independent verifier for AI-written tractor code</div><div style="margin-top:6px"><a href="airport.html" style="color:var(--accent)">Whole-airport fleet running the approved controller &rarr;</a></div>
+  let html = `<a href="about.html" style="float:right;background:#1f6feb;color:#fff;text-decoration:none;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600">&larr; Home</a><h1>AirGuard</h1><div class="muted">Independent verifier for AI-written tractor code</div><div style="margin-top:6px"><a href="airport.html" style="color:var(--accent)">Whole-airport fleet running the approved controller &rarr;</a></div>
     <h2>Verdict</h2><span class="badge ${M.verdict}">${M.verdict}</span> <span class="mono">${esc(M.candidate)}</span>
     <div class="muted" style="margin-top:4px">deployed after: <span class="mono">${esc(M.deployed_after)}</span></div>
     <div class="mono muted">verdict_hash ${M.verdict_hash.slice(0, 24)}&hellip;</div>

@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "```python\n\"\"\"tug_v2 - 20% faster, safety-preserving (margins unchanged).\"\"\"\nimport math\nfrom sim import dist, poly_sdist, footprint_dist\n\nCRUISE = 6.0        # m/s  (+20% vs 5.0 baseline)\nFOG_SPEED = 3.0     # m/s  (+20% vs 2.5 baseline, visibility <200m)\nLOOKAHEAD = 30.0    # m  (+20% vs 25.0 to preserve stopping distance at higher speed)\nBLAST_MARGIN = 5.0  # m, unchanged - covers GPS noise\nPUSH_KEEP = 25.0    # m from pushing aircraft, unchanged\nOBS_KEEP = 8.0      # m from people/debris, unchanged\n\n\ndef ahead(route, i, pos, length, step=2.0):\n    pts, cur, left = [pos], pos, length\n    for wp in route[i:]:\n        d = dist(cur, wp)\n        while d > 0 and left > 0:\n            s = min(step, d, left)\n            cur = (cur[0] + (wp[0] - cur[0]) * s / d, cur[1] + (wp[1] - cur[1]) * s / d)\n            pts.append(cur)\n            d -= s\n            left -= s\n    return pts\n\n\nclass Controller:\n    def __init__(self):\n        self.i = 0\n\n    def step(self, obs):\n        pos, route = obs[\"pos\"], obs[\"route\"]\n        while self.i < len(route) - 1 and dist(pos, route[self.i]) < 4:\n            self.i += 1\n\n        v = CRUISE if obs[\"visibility\"] >= 200 else FOG_SPEED\n\n        dg = dist(pos, obs[\"goal\"])\n        if self.i == len(route) - 1:\n            # slightly faster goal approach but still proportional to distance for safe stop\n            # baseline was max(0.6, 0.4*dg) -> now max(0.8, 0.5*dg) ~20-25% faster near goal\n            if dg > 1.5:\n                v = min(v, max(0.8, 0.5 * dg))\n            else:\n                v = 0.0\n\n        pts = ahead(route, self.i, pos, LOOKAHEAD)\n\n        for a in obs[\"aircraft\"]:\n            if a[\"is_destination\"]:\n                continue\n            if a[\"state\"] in (\"beacon_on\", \"engines_running\", \"pushback\"):\n                inside_now = poly_sdist(pos, a[\"blast\"]) < 0\n                if not inside_now and any(poly_sdist(p, a[\"blast\"]) < BLAST_MARGIN for p in pts):\n                    v = 0.0\n            if a[\"state\"] == \"pushback\" and any(footprint_dist(p, a) < PUSH_KEEP for p in pts):\n                v = 0.0\n\n        for o in obs[\"obstacles\"]:\n            if any(dist(p, o[\"pos\"]) < OBS_KEEP for p in pts):\n                v = 0.0\n\n        return {\"target\": route[self.i], \"speed\": v}\n```",
+ "usage": {
+  "completion_tokens": 3224,
+  "prompt_tokens": 701,
+  "total_tokens": 3925,
+  "completion_tokens_details": {
+   "reasoning_tokens": 2516
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 24.94
+}

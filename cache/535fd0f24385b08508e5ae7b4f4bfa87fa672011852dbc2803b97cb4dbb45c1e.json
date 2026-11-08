@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "The frame shows a low_visibility_speed safety violation (red X) where the baggage tractor is traveling at 2.6 m/s in fog with only 80 m visibility. This speed is unsafe for the conditions and leaves insufficient detection and braking distance to avoid collision with the aircraft at A7/A8 or inadvertent entry into the adjacent active jet-blast zones.",
+ "usage": {
+  "completion_tokens": 1328,
+  "prompt_tokens": 889,
+  "total_tokens": 2217,
+  "completion_tokens_details": {
+   "reasoning_tokens": 1245
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 11.44
+}
