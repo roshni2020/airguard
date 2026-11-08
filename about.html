@@ -85,7 +85,7 @@
     <li><b>2. SubQ red-teams it.</b> SubQ reads the full FAA AC, the SFO map, the code and <b>every earlier 0.1 s trace</b> (up to <b>676k tokens</b> in one call), then designs harder scenarios each round. It never sees the implementer's reasoning.</li>
     <li><b>3. SubQ Snap screens and triages.</b> It reads about 370k tokens of raw traces in seconds, rates severity and filters unrealistic tests. It is advisory only.</li>
     <li><b>4. A deterministic judge decides.</b> The simulator runs every scenario on real SFO geometry, and fixed FAA-cited checks return PASS or BLOCK.</li>
-    <li><b>5. Block or deploy.</b> Unsafe updates are blocked and rolled back. Safe ones are promoted. Every verdict is hashed and reproducible.</li>
+    <li><b>5. Block or deploy.</b> Unsafe updates are blocked and rolled back, and <b>Twilio</b> phones and texts airport ops with the rule, stand and time. Safe ones are promoted. Every verdict is hashed and reproducible.</li>
     <li><b>6. The gate improves itself.</b> SubQ grows the test library, and a new version is adopted only if it catches more bad code on held-out tests without failing more good code.</li>
   </ul>
 </div></section>
@@ -121,7 +121,7 @@
 
 <section class="right" data-cam="team"><div class="card">
   <div class="kicker">Team</div><h2>Solo build by roshni2020</h2>
-  <p>Built alone at AIE Code Summit 2026 for the <b>Trust but Verify</b> track, entered for <b>Best Use of Subquadratic</b> (SubQ long-context red team plus SubQ Snap decisions) and <b>Best Use of Meta Model API</b> (Muse Spark implementer and vision).</p>
+  <p>Built alone at AIE Code Summit 2026 for the <b>Trust but Verify</b> track, entered for <b>Best Use of Subquadratic</b> (SubQ long-context red team plus SubQ Snap decisions) and <b>Best Use of Meta Model API</b> (Muse Spark implementer and vision). Alerts via <b>Twilio</b> (voice call and SMS).</p>
   <p>Code: <a class="ln" href="https://github.com/roshni2020/airguard">github.com/roshni2020/airguard</a></p>
   <div class="cta"><a href="airport.html">Fleet 3D</a><a class="alt" href="viewer.html#out/replay_tug_v2_ai.js">Gate evidence</a><a class="alt" href="agents.html">Agents</a></div>
 </div></section>

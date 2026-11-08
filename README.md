@@ -8,7 +8,7 @@ against the **FAA's own ground-vehicle rules**, and then either **blocked and ro
 
 **Live demo: https://airguard-ecru.vercel.app** (About · Fleet 3D · Gate evidence · Agents)
 
-AIE Code Summit 2026 · Track: **Trust but Verify** · Entered for **Best Use of Subquadratic** and **Best Use of Meta Model API** · Solo build by **roshni2020**
+AIE Code Summit 2026 · Track: **Trust but Verify** · Entered for **Best Use of Subquadratic** and **Best Use of Meta Model API** · Built with **SubQ**, **SubQ Snap**, **Meta Muse Spark**, **Twilio**, **three.js** and **OpenStreetMap** · Solo build by **roshni2020**
 
 ![An AI-written update drives a tractor through the jet blast of a 777 starting engines at SFO stand A7, and gets blocked](out/tug_v2_ai_violation.gif)
 
@@ -40,7 +40,7 @@ running autonomous tugs, autonomous-vehicle vendors shipping AI-written updates,
 | 2. Red-team it | **SubQ `subq-preview`** | Reads the full FAA AC, the SFO map, the code and **every earlier 0.1 s trace**, without summarising (up to **676k tokens in one call**), and designs harder scenarios each round. It never sees the implementer's reasoning |
 | 3. Screen and triage | **SubQ Snap `subq-snap-1.1`** | Reads about 370k tokens of raw traces in seconds, rates severity, and filters unrealistic tests. Advisory only |
 | 4. Judge | **Deterministic Python** (`checks.py`) | Simulates every scenario on real SFO geometry. Fixed FAA-cited checks decide PASS or BLOCK. **No model decides** |
-| 5. Act | `verify.py` | BLOCK: rollback, then a phone or SMS alert (Twilio, optional). PASS: promote. Each verdict is hashed and reproducible |
+| 5. Act | `verify.py` + **Twilio** | BLOCK: rollback, then a **Twilio voice call and SMS** to ops with the rule, FAA citation, stand and time. PASS: promote. Each verdict is hashed and reproducible |
 | 6. Improve | `improve.py` | SubQ grows the versioned test library. A new version is adopted **only if it catches more bad code on held-out tests without failing more good code** |
 
 **Agent check layer:** scenario schema validation (`verify.validate_scenario`), safety limits pinned to the
@@ -108,7 +108,7 @@ LLM responses are cached in `cache/`, so `--offline` replays every run without A
 | `agents.py` / `llm.py` | Agent harness (role, model, memory, budget) / SubQ, Snap and Meta clients with cache and trace |
 | `stress.py` / `evals.py` / `improve.py` | 1,000-scenario stress / mutation-testing evals / self-improving suite |
 | `fleet.py` | Whole-airport multi-robot simulation |
-| `alert.py` | Twilio voice call and SMS on BLOCK (optional) |
+| `alert.py` | **Twilio** voice call + SMS on BLOCK (REST API via `requests`; `py alert.py --test`) |
 
 ## Honest limits
 
@@ -116,4 +116,4 @@ LLM responses are cached in `cache/`, so `--offline` replays every run without A
 - Speed limits and clearances are example values. A real deployment uses the airport's own.
 - The gate certifies a single robot. The fleet hazards above (robot-to-robot, neighbouring aircraft) are not yet in the gate.
 - The gate is strict: it blocks 3 of 6 safe held-out variants, two of them for missing tight delivery deadlines rather than for safety.
-- Phone alerts are implemented but were not exercised live (no Twilio credentials during the event).
+- Twilio alerts need `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` and `ALERT_TO` in `.env`. Without them the gate prints "alert skipped" and carries on.
