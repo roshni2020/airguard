@@ -2,208 +2,118 @@
 
 **AI is writing the code that drives robots next to airplanes. AirGuard proves it's safe before it runs.**
 
-Driverless baggage tractors already run next to aircraft at Singapore Changi (T1<->T4, since Jan 2026)
-and Dubai DWC (dnata), with trials at Schiphol and Stuttgart. Their driving software changes often, more
-and more of it written by AI, and nobody independently proves an update is safe before it is deployed.
-AirGuard is that gate. Built for AIE Code Summit 2026, track "Trust but Verify".
+AirGuard is an independent safety gate for autonomous airport ground robots. Every software update to a
+driverless baggage tractor is red-teamed in a digital twin of the **real San Francisco airport**, judged
+against the **FAA's own ground-vehicle rules**, and then either **blocked and rolled back** or **deployed**.
 
-![v2 blocked: tractor crosses the jet blast of a 777 starting engines at SFO stand A7](out/tug_v2_ai_violation.gif)
+**Live demo: https://airguard-ecru.vercel.app** (About · Fleet 3D · Gate evidence · Agents)
 
-## How it works
+AIE Code Summit 2026 · Track: **Trust but Verify** · Entered for **Best Use of Subquadratic** and **Best Use of Meta Model API** · Solo build by **roshni2020**
 
-| Role | Who | Job |
+![An AI-written update drives a tractor through the jet blast of a 777 starting engines at SFO stand A7, and gets blocked](out/tug_v2_ai_violation.gif)
+
+---
+
+## Why it matters
+
+Driverless baggage tractors already work beside aircraft at **Singapore Changi** and **Dubai DWC**, with
+trials at **Amsterdam Schiphol** and **Stuttgart**. Their software changes often, and more and more of it is
+written by AI. The hazards are physical: an idling jet engine can blow a vehicle over, and an aircraft
+pushing back cannot stop for a tug. Reading the code diff is not enough. In our tests an AI diff reviewer
+rated a genuinely safe fix as unsafe and could not see hazards that only appear when the code runs next to a 777.
+
+**Who it's for:** airport operators (the FAA makes them responsible for every airside vehicle), ground handlers
+running autonomous tugs, autonomous-vehicle vendors shipping AI-written updates, and regulators, certifiers and insurers.
+
+## What the real data tells us
+
+- **The FAA names the hazards.** AC 150/5210-20A App. B 2.2.1(c): *"Avoid jet blast or prop wash, which can blow debris or overturn vehicles."* 2.2.1(g): beacons mean the aircraft *"may be moving or preparing to move."* 2.2.3: *"don't assume that if the beacon(s) aren't flashing that the engine(s) isn't running."* Speed limits are left to each airport.
+- **The real SFO map puts the hazard on the route.** The service route along taxilane M5 between the A and B piers runs directly behind stand A7. When a 777 there starts its engines, its idle jet-blast zone (about 120 m) covers the road, and an ordinary delivery to A8 passes about **20 m inside it**.
+- **Aircraft size matters.** A 777-300ER is 73.9 m long with a 64.8 m span (FAA database), against 37.6 m for an A320. Code that is safe beside an A320 can be unsafe beside a 777.
+- **Fleets create new hazards.** On the whole airport (106 real stands, 3,206 buildings), 16 robots produced **21 robot-to-robot close passes** and **35 close passes to neighbouring aircraft** that single-robot tests never see.
+
+## How it works: agents propose, Python decides
+
+| Step | Who | What |
 |---|---|---|
-| Implementer | **Meta Muse Spark** (`META_API_KEY`) | writes controller updates from a change request; describes the violation frame (vision) |
-| Verifier | **SubQ** `subq-preview` (`SUBQ_API_KEY`) | long-horizon red team: reads the full FAA AC, the real SFO map, the whole repo and **all previous simulation traces at every 0.1 s step** each round, then designs harder scenarios. It never sees the implementer's prompt, comments or reasoning. |
-| Triage + diff-only baseline | **SubQ Snap** `subq-snap-1.1` (decision model, `POST /v1/systemone`) | returns probabilities, not text: rates the severity of each violation and whether to phone ops (advisory only), and acts as the diff-only reviewer in `baseline.py` |
-| Judge | deterministic Python (`checks.py`) | simulates, measures, and decides PASS/BLOCK. No LLM ever decides. |
+| 1. Write an update | **Meta Muse Spark** | Turns "make the route 20% faster" into controller code. The output is AST-sanitised before it runs |
+| 2. Red-team it | **SubQ `subq-preview`** | Reads the full FAA AC, the SFO map, the code and **every earlier 0.1 s trace**, without summarising (up to **676k tokens in one call**), and designs harder scenarios each round. It never sees the implementer's reasoning |
+| 3. Screen and triage | **SubQ Snap `subq-snap-1.1`** | Reads about 370k tokens of raw traces in seconds, rates severity, and filters unrealistic tests. Advisory only |
+| 4. Judge | **Deterministic Python** (`checks.py`) | Simulates every scenario on real SFO geometry. Fixed FAA-cited checks decide PASS or BLOCK. **No model decides** |
+| 5. Act | `verify.py` | BLOCK: rollback, then a phone or SMS alert (Twilio, optional). PASS: promote. Each verdict is hashed and reproducible |
+| 6. Improve | `improve.py` | SubQ grows the versioned test library. A new version is adopted **only if it catches more bad code on held-out tests without failing more good code** |
 
-`verify.py` runs the loop:
-1. **Round 0, blind spec.** SubQ gets the FAA text, rules, map, aircraft data, the approved controller and the sim/check source, but NOT the candidate. It returns invariant parameters and adversarial scenarios. Both are schema-validated, and unknown rule types or fields are rejected.
-2. Every scenario (6 built-in floor scenarios + SubQ's) runs against the candidate. `checks.py` scores them.
-3. **Rounds 1..N, red team.** The complete traces of the previous round are appended to the same conversation (never summarised), together with the comment-stripped candidate diff. SubQ targets the near-misses. The loop stops on a violation or when SubQ has nothing harder. Context size per round is logged.
-4. **Vision.** The PNG frame at the first violation goes to Meta for a plain-English hazard description.
-5. **Verdict** goes to `verdicts/<candidate>_<ts>.json`: every violation with rule id, FAA citation, scenario, t, x/y, measured vs limit, plus file, prompt and data hashes and a `verdict_hash`. The same inputs and LLM cache give an identical `verdict_hash`.
-6. **Rollback.** `deployed.json` points at the last approved controller and keeps a history. PASS promotes. BLOCK keeps the current controller, and if the blocked file was the deployed one, AirGuard reverts.
+**Agent check layer:** scenario schema validation (`verify.validate_scenario`), safety limits pinned to the
+versioned suite (they can only change through the held-out test), generated code sandboxed (`meta_implement.sanitize`),
+per-agent token budgets (`agents.py`), and every model call traced (`out/calls.jsonl`, hashes only).
 
-Anti-gaming: the floor invariants always apply, and LLM parameters can only *tighten* them (`checks.tighten`). Scenarios and seeds come from the verifier, not the candidate. A tractor that never moves fails `mission_complete`. Meta-written code is AST-sanitised (only `math`/`sim` imports, no `open`/`eval`/dunders) before it runs.
+## Results (live runs)
 
-## What SubQ found (live runs)
+| | |
+|---|---|
+| Meta's live "20% faster" update | **BLOCKED**: fog speed 3.0 m/s over the 2.5 m/s limit, and entry into a live jet-blast zone |
+| Hand-seeded unsafe update (v2) | **BLOCKED**: drove 19 m into a 777's jet blast and kept 6 m/s in fog |
+| Fixed controller (v3) | **PASSED** 4 rounds of live SubQ red-teaming, and is deployed |
+| Unsafe code caught (mutation testing) | **56%** with built-in tests, rising to **89%** with SubQ's scenarios, **0 false blocks** |
+| Bugs SubQ found | tractor run over by a pushback while waiting; too slow to leave jet blast when a beacon lit; debris blocking the route; 3.47 m crew near-miss against a 3.5 m limit; a jet-blast flaw in the **already approved** controller |
+| Diff-only review (Snap) | v2 P(safe) = 0.001 (correct), but **the safe fix P(safe) = 0.055 (wrong)** |
+| Snap reading raw traces | 368k tokens in 4.6 s; agreed with the Python judge on 32 to 44 of 46 scenarios with 0 false alarms |
+| Self-improving gate | v003 caught **every** unsafe mutant but also failed every safe one, so it was **rejected**. No version adopted yet |
+| SubQ context | **676,060** tokens in the largest call; about **4M** in total |
 
-- **Round 0 (blind spec, 32k prompt tokens):** SubQ read the whole FAA AC, the map and the code. It tightened the invariants (max speed 6.0 m/s, 1 m blast margin, 18 m pushback clearance, fog limit 2.5 m/s below 250 m) and wrote 6 adversarial scenarios. One put debris on the service road, which neither v1 nor v3 could drive around, so v3 got debris avoidance.
-- **Round 1 (420k prompt tokens: every 0.1 s trace step of round 0 plus the 1000-row stress table):** SubQ went after the new code paths. `rt_pushback_close_start` showed v3 being run over by a 60 m pushback while it waited behind the aircraft, and it also caught the *approved* v1 in jet blast. `rt_beacon_lights_inside_blast` showed v3 too slow to leave a zone it was already in when the beacon lit. Both were fixed in v3: it now escapes in the blast zone's own frame and accounts for the zone moving during pushback.
-- **Diff-only review cannot tell a fix from a regression.** SubQ Snap on the diff alone gives v2 P(safe) = 0.001, which is correct, and v3 P(safe) = 0.055, which is wrong: v3 passes every scenario and fails fewer stress scenarios than the approved v1. That evidence only comes from simulation.
-- **Missed deadlines** in scenarios where the approved controller *also* misses the deadline (for example, engines running on the only route until t=150 s) are recorded as `inconclusive`. Safety violations always block.
+## The frontend (three.js r160)
 
-## Large-scale stress data, cross-checked with SubQ
+| Page | Shows |
+|---|---|
+| **About** | Scroll-driven 3D story over the real SFO apron: who, why, what the data says, how, results |
+| **Fleet 3D** | The whole SFO airport with 16 tractors running the approved controller, live engine starts and pushbacks, follow-a-bot camera |
+| **Gate evidence** | 3D replay of every scenario in every round, with a plain-English narration banner, violations and FAA citations |
+| **Agents** | Observability: 3D agent graph, model speed and quality comparison, SubQ context growth per round, full call log |
 
-`stress.py` generates thousands of seeded random scenarios across all 8 real SFO stands, 4 aircraft
-types, engine starts, pushbacks, fog, GPS noise, crew and debris (1000 scenarios is about 900k simulation steps, or
-25 simulated hours per controller, in about 1 minute on a laptop). Random scenarios are sometimes impossible for any
-controller, so the gate scores them **differentially**: `verify.py --fuzz N` runs the candidate and the
-approved controller on the same N scenarios and BLOCKs if the candidate fails more of them
-(`stress_noninferiority`). The full per-scenario result table and every regression scenario then go
-into **SubQ's red-team context**, so SubQ targets the exact weak spots the large data exposed.
+## Data
 
-| 1000 seeded scenarios | scenarios with violations | regressions vs v1 |
+| Data | Source | Status |
 |---|---|---|
-| tug_v1 (approved) | 119 | - |
-| tug_v2_ai (seeded faulty) | ~400 | ~270 -> BLOCK |
-| tug_v3_fixed | 106 | 16 (non-inferior -> listed for SubQ) |
+| SFO map: runways, taxiways, 287 stands, 133 jet bridges, terminals, 3,206 buildings | OpenStreetMap via the Overpass API, © OpenStreetMap contributors, **ODbL** | real |
+| Rules and citations | FAA AC 150/5210-20A, *Ground Vehicle Operations* (public domain), `data/faa_ac_150_5210_20A.*` | real |
+| Aircraft dimensions | FAA Aircraft Characteristics Database, `data/aircraft.json` | real |
+| Engine positions, jet-blast lengths | Airbus / Boeing Airport Planning documents | approximate |
+| Speed limits, clearances | Example values (the AC leaves them to each airport), `rules/ground_ops.md` | example |
+| Tractors, schedules, crew, fog, GPS noise, 1,000 stress scenarios | AirGuard simulator, seeded | simulated |
+| Red-team scenarios, one controller update | Written live by SubQ and Meta, then validated | AI-generated |
 
-The stress data found real bugs that the 6 hand-written scenarios missed. One was that a tractor waiting for a
-pushback could be hit by the pushing aircraft. Another was that a tractor could stop *inside* one jet-blast zone
-while waiting for the next one. v3 was fixed: it backs off from a pushing aircraft and never stops inside a live blast zone.
-
-## 3D replay viewer (three.js)
-
-Every `verify.py` run writes `out/replay_<candidate>.js`. Open
-`viewer.html#out/replay_tug_v2_ai.js` in a browser (works from `file://`, no server). It replays
-every scenario of every round in 3D on the real SFO apron: aircraft with blinking beacons, live
-jet-blast zones, pushback, crew, debris, fog, and red pillars at each violation. The side panel shows
-the verdict, the **SubQ round log (context size and tokens per round)**, the stress comparison, **model
-usage metrics** and the violations with FAA citations.
-
-## Phone alerts
-
-On a BLOCK, after the rollback, `alert.py` texts and phones you through the Twilio REST API (plain
-`requests`, no SDK). The message names the blocked update, the rule and FAA citation, the stand, the time,
-and the controller it rolled back to, for example *"AirGuard blocked update tug_v2_ai. Rule jet_blast_zone, FAA
-AC 150/5210-20A App. B 2.2.1(c) avoid jet blast: violation near stand A7 at t=23 seconds ... Rolled back
-to tug_v1. Fleet is safe."* The call reads the message twice.
-
-- Env vars (in `.env`, which is gitignored): `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`, `ALERT_TO`.
-  If any is missing, the gate prints `alert skipped: twilio not configured` and carries on.
-- `--alert call|sms|both|off` (default `both`). `--notify-pass` also texts on PASS. With `both`,
-  SubQ Snap triage only picks the channel (minor means SMS only). If triage fails, both are sent.
-- Alerts are never cached, so an offline replay of the gate still rings the phone. The verdict JSON stores
-  only the message/call SIDs and status under `alert`, never credentials.
-- Twilio trial limits: it can only call or text **verified** numbers, and a trial notice plays before the
-  message (that is why the message is read twice).
-- Test: `py alert.py --test` sends one SMS and one call saying "AirGuard test alert".
-
-## Model usage metrics
-
-Every SubQ and Meta call records its prompt and completion tokens, prompt characters, latency and whether it was a cache hit.
-`verify.py` prints totals per model, stores them in the verdict (`usage`, outside `verdict_hash`),
-and the viewer shows them.
-
-## Frontend (open `index.html`)
-
-Four static pages, three.js, no server (they load `out/*.js`):
-- **About** (`about.html`): the story, the agent crew, real vs simulated, around a 3D aircraft and tractor.
-- **Fleet 3D** (`airport.html`): the whole real SFO airport (OpenStreetMap runways, taxiways, terminals, 3,206 buildings, 106 stands) with 16 autonomous tractors running the controller AirGuard approved. Aircraft start engines and push back live. It has a clock, 1x/5x/20x speed, follow-a-bot, and an event feed. Generate it with `py fleet.py`.
-- **Gate evidence** (`viewer.html`): a round-by-round 3D replay of every scenario a candidate faced.
-- **Agents** (`agents.html`): agent observability, with a 3D graph of the crew (node size = tokens), SubQ context growth per round, per-agent totals and the full call timeline. Generate it with `py calls.py --export`.
-
-## Agent harness
-
-`agents.py` is AirGuard's own small harness, with no framework. Every model call goes through an agent declared there,
-with a role, model, memory and per-call context budget. `py agents.py` prints the crew:
-
-| agent | model | memory | role |
-|---|---|---|---|
-| subq-redteam | subq-preview | **yes** (whole conversation, 1.2M-token budget) | long-horizon red team |
-| subq-improve | subq-preview | no | grows the scenario library from escaped mutants |
-| snap-screen / snap-triage / snap-realism / snap-diff-baseline | subq-snap-1.1 | no | decision questions over large state |
-| meta-implement / meta-vision | muse-spark-1.2 | no | writes updates / describes frames |
-
-Agents only propose or describe. `checks.py` decides, `verify.validate_scenario` gates every scenario, and
-`meta_implement.sanitize` gates generated code. Every call is traced to `out/calls.jsonl` (`py calls.py`).
-
-## Agent call trace
-
-Every model call (SubQ red team, SubQ Snap, Meta) appends one line to `out/calls.jsonl` with: run id,
-agent role (`subq-redteam`, `subq-improve`, `snap-triage`, `snap-screen`, `snap-realism`, `snap-diff-baseline`,
-`meta-vision`, `meta-implement`), round, model, a sha256 of the request (never the prompt or any key),
-characters, tokens, latency, cache hit, and a short outcome. Each verdict also carries a `calls` summary.
-`py calls.py [--run RUN_ID]` prints a timeline per run, totals per agent, and SubQ's context growth per round.
-
-Measured so far (unique live calls): **subq-preview about 4M prompt tokens** across red-team and improve calls,
-with the largest single prompt at **676,060 tokens**.
-
-## SubQ Snap on large data
-
-SubQ Snap (`/v1/systemone`, 393,216-token window) gets the **complete raw traces** of every scenario in a gate
-run. That was **368,563 tokens in one call, answered in 4.6 s**. It rates each scenario for a safety-rule
-breach, and we measure agreement with the deterministic Python judge. On the v2 gate (46 scenarios) it agreed
-on **32/46, with 0 false alarms and 14 misses** (subtle clearance breaches). Snap is a fast screen, but the
-deterministic judge has to stay in charge. It is stored in the verdict as `snap_screen` and is advisory only.
-
-## Self-improving gate
-
-`suite/` is a versioned scenario library: `v001` = the built-in floor plus the 34 scenarios SubQ wrote in live
-red-team runs, `current.json` points at the active version, and `history.jsonl` logs every proposal. `evals.py`
-splits the mutants into **TRAIN / HELD-OUT by weakness family** (for example `push_keep_5` in train and `push_keep_10`
-held out). That split is fixed in the file, so the loop learns from one variant and is scored on a sibling it never saw.
-
-`py improve.py --iterations 3`: run the suite on TRAIN, send the escaped mutants' diffs and full near-miss
-traces to SubQ (`subq-improve`, about 180k tokens per call), let Snap drop unrealistic proposals, then evaluate
-current and candidate on HELD-OUT. **Adopt only if held-out catch strictly rises and false blocks do not.**
-Rejected proposals and the escaped mutants' closest approaches are fed back to SubQ in the next iteration.
-Built-in floor scenarios can never be removed. `verify.py` always uses `suite/current.json`.
-
-Real run (out/improve.png):
-
-| version | train catch | held-out catch | held-out false-block | status |
-|---|---|---|---|---|
-| v001 | 7/8 | 5/7 | 3/6 | current |
-| v002 | 7/8 | 5/7 | 3/6 | rejected (no gain) |
-| v003 | **8/8** | **7/7** | **6/6** | rejected: caught every unsafe mutant, but also blocked every safe one |
-| v004 | 7/8 | 5/7 | 3/6 | rejected (no gain) |
-
-**No version was adopted.** With rejection feedback, SubQ found scenarios in v003 that catch the pushback
-keep-out family that had slipped past everything (`push_keep_5`, `push_keep_10`, `blast_margin_0`). But those
-scenarios were so harsh that every safe variant failed too, so the adoption rule blocked an over-harsh suite.
-The false blocks in v001 are also informative. `cruise_5_8` (slower) gets caught as a beacon lights, so slower
-is not automatically safer. `push_keep_28` and `blast_margin_9` (more cautious) miss SubQ's tight delivery
-deadlines, which means the gate is strict on delivery time as well as safety.
+Candidates: `tug_v1` (hand-written baseline), `tug_v2_ai` (**hand-seeded** unsafe "optimisation"), `tug_v3_fixed`
+(hand-written fix, hardened after each SubQ finding), `tug_meta_1` (**written live by Meta**).
 
 ## Run it
 
-```
+```bash
 py -m pip install requests matplotlib
-py selfcheck.py                              # offline: v1 PASS, v2 BLOCK (jet blast + fog), v3 PASS, stand-still BLOCK, reproducible
-py verify.py --candidate tugs/tug_v2_ai.py --alert both   # BLOCK -> rollback -> your phone rings + SMS
-py baseline.py tugs/tug_v3_fixed.py          # diff-only reviewer (SubQ Snap) for contrast
-py improve.py --iterations 3                  # self-improving scenario library
-py calls.py                                   # agent call trace
-py meta_implement.py --request "make the route 20% faster" --out tugs/tug_meta_1.py   # needs META_API_KEY
-py verify.py tugs/tug_meta_1.py
-py stress.py --n 1000 tugs/tug_v1.py tugs/tug_v2_ai.py tugs/tug_v3_fixed.py   # large-data comparison
-py verify.py tugs/tug_v3_fixed.py --fuzz 1000   # gate + stress data fed to SubQ
-# then open viewer.html#out/replay_tug_v3_fixed.js
+cp .env.example .env            # add SUBQ_API_KEY, META_API_KEY (optional: Twilio)
+py selfcheck.py                 # offline regression test
+py verify.py --candidate tugs/tug_v2_ai.py --fuzz 1000   # gate: SubQ red team + 1000 stress scenarios
+py baseline.py tugs/tug_v3_fixed.py                      # diff-only reviewer for contrast
+py meta_implement.py --request "make the route 20% faster" --out tugs/tug_meta_2.py
+py improve.py --iterations 3    # self-improving test library
+py fleet.py                     # whole-airport fleet simulation
+py calls.py --export            # agent call log
+# then open index.html (or the live site)
 ```
-Put keys in `.env` (copy `.env.example`; `.env` is gitignored).
-Optional env: `SUBQ_MODEL`, `SUBQ_URL`, `META_MODEL` (default `muse-spark-1.2`), `META_URL`. Keys are read from env and never printed or stored. LLM responses are recorded in `cache/` so runs replay offline.
+LLM responses are cached in `cache/`, so `--offline` replays every run without API calls.
 
-## What is real and what is simulated
+| File | Role |
+|---|---|
+| `sim.py` / `checks.py` | Simulator on real SFO geometry / deterministic FAA-cited judge |
+| `verify.py` | The gate: SubQ red-team rounds, stress, verdict, rollback, alert, replay |
+| `agents.py` / `llm.py` | Agent harness (role, model, memory, budget) / SubQ, Snap and Meta clients with cache and trace |
+| `stress.py` / `evals.py` / `improve.py` | 1,000-scenario stress / mutation-testing evals / self-improving suite |
+| `fleet.py` | Whole-airport multi-robot simulation |
+| `alert.py` | Twilio voice call and SMS on BLOCK (optional) |
 
-| Thing | Status | Source |
-|---|---|---|
-| SFO apron geometry: stands A6/A7/A8/A11, B11/B16/B19/B20, taxilane M5, aprons, terminals | **real** | `data/sfo_osm.json`, OpenStreetMap Overpass, bbox 37.605,-122.400,37.630,-122.365. (c) OpenStreetMap contributors, ODbL |
-| Rules and citations | **real** | FAA AC 150/5210-20A *Ground Vehicle Operations* (2015, public domain), `data/faa_ac_150_5210_20A.{pdf,txt}` |
-| Aircraft wingspan / length | **real** | FAA Aircraft Characteristics Database |
-| Engine positions, jet-blast lengths | **approximate** | read off manufacturer airport-planning docs, not certified values |
-| Speed limits, clearance distances | **example values** | the AC says the airport operator sets speed limits (Ch. 3 item 5); see `rules/ground_ops.md` |
-| Tractor route | real M5 polyline + simulated door point | `sim.route_to` |
-| Aircraft states, crew, debris, fog, GPS noise, tractor dynamics | **simulated** | `sim.py`, seeded, dt = 0.1 s |
+## Honest limits
 
-## Candidates: which were hand-seeded and which came from Meta
-
-- `tugs/tug_v1.py`: hand-written approved baseline (5 m/s, yields to beacons, jet blast, pushback, people; slows in fog).
-- `tugs/tug_v2_ai.py`: **hand-seeded** to simulate a bad AI "optimisation": +20% speed, beacon/engine check removed, no fog slowdown. **Not** written by Meta.
-- `tugs/tug_v3_fixed.py`: **hand-seeded** fix: +20% speed with all checks kept and a longer lookahead. About 13% faster than v1 on the nominal run. It was then **hardened three times in response to live SubQ findings**: debris sidestep, blast-frame escape, and pushback-aware escape.
-- `tugs/tug_meta_*.py`: produced live by Meta through `meta_implement.py`. Each file header records the model, the request and the cache hash.
-
-## Built today
-
-All code in this repo (`sim.py`, `checks.py`, `verify.py`, `llm.py`, `meta_implement.py`, `baseline.py`,
-`selfcheck.py`, `stress.py`, `alert.py`, `viewer.html`, `tugs/`, `rules/`, `data/aircraft.json`) was written during the hackathon.
-
-## Known limits
-
-- 2D point-mass tractor, a simplified aircraft footprint (fuselage + wing lines) and a rectangular jet-blast zone.
-- `jet_blast_zone`: being inside the zone while engines run or the aircraft pushes back is a violation, and so is *entering* it once the beacon has been on for at least 3 s (`BEACON_REACTION_S`, an example reaction-time allowance). Being caught inside when a beacon first lights is not a violation by itself, but you must get out before engine start.
-- The SubQ and Meta request formats follow the OpenAI chat-completions shape. Override the URLs and models through env if the real APIs differ.
-- Full per-step traces make round N+1 contexts large (hundreds of thousands of characters). This is deliberate: it is the long-horizon test.
+- 2D point-mass tractor, simplified aircraft footprints, and a rectangular jet-blast zone. Engine and blast values are approximate.
+- Speed limits and clearances are example values. A real deployment uses the airport's own.
+- The gate certifies a single robot. The fleet hazards above (robot-to-robot, neighbouring aircraft) are not yet in the gate.
+- The gate is strict: it blocks 3 of 6 safe held-out variants, two of them for missing tight delivery deadlines rather than for safety.
+- Phone alerts are implemented but were not exercised live (no Twilio credentials during the event).
