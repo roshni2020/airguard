@@ -4,112 +4,202 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AirGuard</title>
 <style>
-  :root { --bg:#0b0e13; --panel:#12161d; --line:#28303b; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --ok:#3fb950; --bad:#f85149; }
-  * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 system-ui, sans-serif; }
-  nav { display:flex; gap:18px; align-items:center; padding:10px 18px; border-bottom:1px solid var(--line); background:var(--panel); position:sticky; top:0; z-index:5; font-size:13px; }
-  nav b { color:var(--accent); } nav a { color:var(--muted); text-decoration:none; } nav a.on, nav a:hover { color:var(--text); }
-  #hero { position:relative; height:440px; overflow:hidden; border-bottom:1px solid var(--line); }
-  #hero canvas { position:absolute; inset:0; }
-  #hero .t { position:absolute; left:max(16px, 6vw); bottom:40px; max-width:620px; text-shadow:0 2px 12px #000; }
-  h1 { font-size:clamp(26px, 4vw, 40px); line-height:1.15; margin:0 0 10px; }
-  main { max-width:900px; margin:0 auto; padding:10px 16px 60px; }
-  h2 { font-size:18px; margin:30px 0 8px; } p { color:#c9d1d9; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px; font-size:13px; }
-  .card b { display:block; color:var(--text); margin-bottom:4px; }
-  table { width:100%; border-collapse:collapse; font-size:13px; } td, th { padding:6px; border-bottom:1px solid var(--line); text-align:left; }
-  .cta a { display:inline-block; margin:6px 8px 0 0; padding:8px 14px; border-radius:6px; background:#1f6feb; color:#fff; text-decoration:none; font-size:14px; }
-  .cta a.alt { background:#21262d; border:1px solid var(--line); }
+  :root { --bg:#0b0e13; --card:rgba(14,18,25,.86); --line:#28303b; --text:#e6edf3; --muted:#9aa4b0; --accent:#58a6ff; --ok:#3fb950; --bad:#f85149; --warn:#d29922; }
+  * { box-sizing:border-box; } html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui, -apple-system, Segoe UI, sans-serif; }
+  #bg { position:fixed; inset:0; z-index:0; }
+  nav { position:fixed; top:0; left:0; right:0; z-index:10; display:flex; gap:18px; align-items:center; padding:10px 20px; font-size:13px; background:linear-gradient(rgba(11,14,19,.95), rgba(11,14,19,0)); }
+  nav b { color:var(--accent); font-size:15px; margin-right:6px; } nav a { color:var(--muted); text-decoration:none; } nav a:hover, nav a.on { color:var(--text); }
+  #dots { position:fixed; right:16px; top:50%; transform:translateY(-50%); z-index:10; display:flex; flex-direction:column; gap:10px; }
+  #dots a { width:10px; height:10px; border-radius:50%; background:#3a424e; display:block; } #dots a.on { background:var(--accent); }
+  main { position:relative; z-index:2; }
+  section { min-height:100vh; display:flex; align-items:center; padding:90px max(20px, 6vw); } section.right { justify-content:flex-end; }
+  .card { max-width:620px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:26px 28px; backdrop-filter:blur(8px); box-shadow:0 10px 40px rgba(0,0,0,.45); }
+  .hero .card { background:transparent; border:0; box-shadow:none; backdrop-filter:none; padding:0; max-width:780px; }
+  h1 { font-size:clamp(30px, 5vw, 54px); line-height:1.1; margin:0 0 14px; text-shadow:0 2px 20px #000; }
+  h2 { font-size:clamp(22px, 3vw, 30px); margin:0 0 10px; } .kicker { color:var(--accent); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; margin-bottom:6px; }
+  p { color:#c9d1d9; margin:8px 0; } ul { margin:8px 0; padding-left:20px; color:#c9d1d9; } li { margin:6px 0; }
+  .quote { border-left:3px solid var(--warn); padding:4px 12px; margin:10px 0; color:#e6edf3; font-style:italic; background:rgba(210,153,34,.08); }
+  .stat { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin:14px 0 4px; }
+  .stat div { background:rgba(255,255,255,.04); border:1px solid var(--line); border-radius:8px; padding:10px; } .stat b { display:block; font-size:24px; } .stat span { font-size:12px; color:var(--muted); }
+  .cta a { display:inline-block; margin:8px 8px 0 0; padding:10px 16px; border-radius:8px; background:#1f6feb; color:#fff; text-decoration:none; font-weight:600; } .cta a.alt { background:rgba(33,38,45,.9); border:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; font-size:13px; } td, th { padding:6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { color:var(--muted); }
+  .tag { font-size:11px; padding:1px 6px; border-radius:4px; white-space:nowrap; } .real { background:rgba(63,185,80,.18); color:var(--ok); } .sim { background:rgba(88,166,255,.15); color:var(--accent); } .ai { background:rgba(163,113,247,.18); color:#d2a8ff; } .approx { background:rgba(210,153,34,.18); color:var(--warn); }
+  a.ln { color:var(--accent); }
+  #legend { position:fixed; left:16px; bottom:14px; z-index:10; font-size:12px; color:var(--muted); background:rgba(11,14,19,.8); border:1px solid var(--line); border-radius:8px; padding:6px 10px; }
+  #legend i { display:inline-block; width:10px; height:10px; border-radius:2px; margin:0 4px 0 10px; vertical-align:-1px; }
+  @media (max-width: 760px) { section, section.right { justify-content:center; } #dots { display:none; } .card { padding:20px; } }
 </style>
+<script src="out/replay_tug_v2_ai.js"></script>
 </head>
 <body>
-<nav><b>AirGuard</b><a class="on" href="about.html">About</a><a href="airport.html">Fleet 3D</a><a href="viewer.html#out/replay_tug_v3_fixed.js">Gate evidence</a><a href="agents.html">Agents</a></nav>
-<div id="hero"><div class="t">
-  <h1>AI is writing the code that drives robots next to airplanes.<br><span style="color:var(--accent)">AirGuard proves it's safe before it runs.</span></h1>
-  <div class="cta"><a href="airport.html">See the SFO fleet in 3D</a><a class="alt" href="viewer.html#out/replay_tug_v2_ai.js">Watch an unsafe update get blocked</a><a class="alt" href="agents.html">Agent observability</a></div>
-</div></div>
+<canvas id="bg"></canvas>
+<nav><b>AirGuard</b><a class="on" href="about.html">About</a><a href="airport.html">Fleet 3D</a><a href="viewer.html#out/replay_tug_v2_ai.js">Gate evidence</a><a href="agents.html">Agents</a></nav>
+<div id="dots"></div>
+<div id="legend">Real SFO A/B piers (OpenStreetMap)<i style="background:#2ea043"></i>tractor<i style="background:#e6edf3"></i>777 at A7<i style="background:#ffc04d"></i>beacon on<i style="background:#ff6a1a"></i>jet blast<i style="background:#f85149"></i>violation</div>
 <main>
-  <h2>Why</h2>
-  <p>Driverless baggage tractors already operate beside aircraft at Singapore Changi and Dubai DWC, with trials at Schiphol and Stuttgart.
-  Their driving software is updated often, increasingly by AI. Nobody independently proves an update is safe before it reaches the fleet.</p>
-  <h2>How it works</h2>
-  <div class="grid">
-    <div class="card"><b>1. An AI writes an update</b>Meta Muse Spark turns a change request ("make the route 20% faster") into new controller code.</div>
-    <div class="card"><b>2. SubQ red-teams it</b>SubQ reads the full FAA AC 150/5210-20A, the real SFO map, the code and every earlier simulation trace (up to 676k tokens in one call), then designs harder scenarios each round.</div>
-    <div class="card"><b>3. Python judges</b>A deterministic simulator on real SFO geometry runs every scenario. Fixed FAA-cited checks decide PASS or BLOCK. No model decides.</div>
-    <div class="card"><b>4. Block or deploy</b>Unsafe means blocked and rolled back, with a phone call to ops. Safe means deployed to the fleet. Every verdict is hashed and reproducible.</div>
+<section class="hero" data-cam="hero"><div class="card">
+  <div class="kicker">AIE Code Summit 2026 &middot; Track: Trust but Verify &middot; Best Use of Subquadratic &middot; Best Use of Meta Model API</div>
+  <h1>AI is writing the code that drives robots next to airplanes.<br><span style="color:var(--accent)">AirGuard proves it's safe before it runs.</span></h1>
+  <p style="font-size:18px"><b>What the software does:</b> it is an independent safety gate for autonomous airport ground robots. Every software update is red-teamed in a digital twin of the real San Francisco airport, judged against the FAA's own rules, and then either <b style="color:#ff7b72">blocked and rolled back</b> or <b style="color:#7ee787">deployed to the fleet</b>.</p>
+  <div class="cta"><a href="airport.html">Explore the SFO fleet in 3D</a><a class="alt" href="viewer.html#out/replay_tug_v2_ai.js">Watch an unsafe update get blocked</a><a class="alt" href="#data">What the real data says &darr;</a></div>
+</div></section>
+
+<section class="right" data-cam="who"><div class="card">
+  <div class="kicker">Who it's for</div><h2>Everyone who lets a robot near an aircraft</h2>
+  <ul>
+    <li><b>Airport operators</b> (safety and operations teams). The FAA makes the airport operator responsible for every vehicle airside (AC 150/5210-20A &sect;2). AirGuard gives them evidence before they approve an update.</li>
+    <li><b>Ground handlers running autonomous tugs</b>, like the operations already live at Changi and Dubai, who need to know tonight's update won't put a tug into jet blast tomorrow.</li>
+    <li><b>Autonomous-vehicle vendors</b> who ship frequent, increasingly AI-written updates and need a gate that isn't their own test suite.</li>
+    <li><b>Regulators, certifiers and insurers</b>, who need reproducible, rule-cited proof rather than "trust us".</li>
+  </ul>
+</div></section>
+
+<section data-cam="why"><div class="card">
+  <div class="kicker">Why it matters</div><h2>Fast software, physical consequences</h2>
+  <p>Driverless baggage tractors already work beside aircraft at <b>Singapore Changi</b> and <b>Dubai DWC</b>, with trials at <b>Amsterdam Schiphol</b> and <b>Stuttgart</b>. Their software changes often, and more and more of it is written by AI.</p>
+  <ul>
+    <li><b>The hazards are physical.</b> A jet engine at idle can blow a vehicle over, and an aircraft pushing back cannot stop for a tug.</li>
+    <li><b>Reading the code is not enough.</b> An AI diff reviewer rated our genuinely safe fix as unsafe (P(safe) = 0.055). It cannot see a hazard that only appears when the code runs next to a 777.</li>
+    <li><b>Testing on a live apron is dangerous and slow.</b> The digital twin runs 1,000 scenarios in about a minute.</li>
+    <li><b>Trust is earned per update</b>, and the decision is made by deterministic checks, not by another AI.</li>
+  </ul>
+</div></section>
+
+<section class="right" id="data" data-cam="data"><div class="card">
+  <div class="kicker">What the real data tells us</div><h2>The danger is built into the airport</h2>
+  <p><b>1. The FAA rulebook names the hazards.</b></p>
+  <div class="quote">"Avoid jet blast or prop wash, which can blow debris or overturn vehicles." (AC 150/5210-20A, App. B 2.2.1(c))</div>
+  <div class="quote">"Pay particular attention when aircraft beacons are illuminated, as they may be moving or preparing to move." (App. B 2.2.1(g))</div>
+  <div class="quote">"Don't assume that if the beacon(s) aren't flashing that the engine(s) isn't (aren't) running." (App. B 2.2.3)</div>
+  <p>The AC leaves <b>speed limits to each airport</b>, so there is no universal number. Every airport has to check updates against its own limits.</p>
+  <p><b>2. The real SFO map puts the hazard on the route.</b> In the OpenStreetMap geometry, the service route along taxilane M5 between the A and B piers runs <b>directly behind stand A7</b>. When a 777 there starts its engines, its idle jet-blast zone (about 120 m) covers the road, and an ordinary delivery to A8 passes <b>about 20 m inside it</b>. That is the scene behind this text.</p>
+  <p><b>3. Aircraft size changes everything.</b> From the FAA aircraft database: a 777-300ER is 73.9 m long with a 64.8 m span, against 37.6 m for an A320. Code that is safe next to an A320 can be unsafe next to a 777.</p>
+  <p><b>4. Fleets create new hazards.</b> Across the whole airport (106 real stands, 3,206 buildings), 16 robots together produced <b>21 robot-to-robot close passes</b> and <b>35 close passes to neighbouring aircraft</b> that single-robot tests never see.</p>
+</div></section>
+
+<section data-cam="how"><div class="card">
+  <div class="kicker">How it works</div><h2>Agents propose. Python decides.</h2>
+  <ul>
+    <li><b>1. An AI writes an update.</b> Meta Muse Spark turns "make the route 20% faster" into controller code. Its output is sanitised before it ever runs.</li>
+    <li><b>2. SubQ red-teams it.</b> SubQ reads the full FAA AC, the SFO map, the code and <b>every earlier 0.1 s trace</b> (up to <b>676k tokens</b> in one call), then designs harder scenarios each round. It never sees the implementer's reasoning.</li>
+    <li><b>3. SubQ Snap screens and triages.</b> It reads about 370k tokens of raw traces in seconds, rates severity and filters unrealistic tests. It is advisory only.</li>
+    <li><b>4. A deterministic judge decides.</b> The simulator runs every scenario on real SFO geometry, and fixed FAA-cited checks return PASS or BLOCK.</li>
+    <li><b>5. Block or deploy.</b> Unsafe updates are blocked and rolled back. Safe ones are promoted. Every verdict is hashed and reproducible.</li>
+    <li><b>6. The gate improves itself.</b> SubQ grows the test library, and a new version is adopted only if it catches more bad code on held-out tests without failing more good code.</li>
+  </ul>
+</div></section>
+
+<section class="right" data-cam="found"><div class="card">
+  <div class="kicker">What we found</div><h2>Real bugs, caught before deployment</h2>
+  <div class="stat">
+    <div><b style="color:var(--bad)">BLOCK</b><span>Meta's live "20% faster" update: fog speed over the limit and entry into jet blast</span></div>
+    <div><b>56% &rarr; 89%</b><span>unsafe code caught: built-in tests vs with SubQ's scenarios (0 false blocks)</span></div>
+    <div><b>676k</b><span>tokens in SubQ's largest single call (about 4M in total)</span></div>
+    <div><b>368k</b><span>tokens of raw traces read by SubQ Snap in 4.6 s</span></div>
   </div>
-  <h2>What it found</h2>
-  <p>Across live runs SubQ found real bugs that hand-written tests missed: a tractor run over by a pushback while waiting, one too slow to leave a jet-blast zone when a beacon lit,
-  debris blocking the route, and a 3.47 m crew near-miss against a 3.5 m limit. It also found a jet-blast flaw in the <i>already approved</i> controller.
-  On mutation testing, SubQ's scenarios raise the catch rate from 56% (built-in tests) to 89% with 0 false blocks. A diff-only AI review rated the genuinely safe fix as unsafe (P(safe) = 0.055).</p>
-  <h2>The agent crew</h2>
-  <table><tr><th>agent</th><th>model</th><th>job</th></tr>
-    <tr><td>subq-redteam</td><td>SubQ subq-preview</td><td>long-horizon red team with full trace memory</td></tr>
-    <tr><td>subq-improve</td><td>SubQ subq-preview</td><td>grows the scenario library, adopted only if held-out results improve</td></tr>
-    <tr><td>snap-*</td><td>SubQ Snap 1.1</td><td>reads about 370k tokens of raw traces, triages severity, filters realism, diff-only baseline</td></tr>
-    <tr><td>meta-*</td><td>Meta Muse Spark</td><td>writes updates and describes violation frames</td></tr>
-    <tr><td>judge</td><td>Python</td><td>the only thing that decides PASS or BLOCK</td></tr></table>
-  <h2>Where the data comes from</h2>
+  <ul>
+    <li>SubQ found a tractor <b>run over by a pushback</b> while waiting, one <b>too slow to leave a jet-blast zone</b> when a beacon lit, debris blocking the route, and a <b>3.47 m crew near-miss</b> against a 3.5 m limit.</li>
+    <li>It also found a jet-blast flaw in the <b>already approved</b> controller.</li>
+    <li>The fixed controller passed <b>4 rounds</b> of live red-teaming and is the one deployed.</li>
+  </ul>
+</div></section>
+
+<section data-cam="sources"><div class="card" style="max-width:820px">
+  <div class="kicker">Where the data comes from</div><h2>Real where it matters, labelled everywhere</h2>
   <table>
-    <tr><th>data</th><th>source</th><th>status</th></tr>
-    <tr><td>SFO airport map: runways, taxiways, 287 stands, 133 jet bridges, 8 terminals, 3,206 buildings</td>
-        <td><a style="color:var(--accent)" href="https://www.openstreetmap.org/#map=15/37.6189/-122.3790">OpenStreetMap</a> via the Overpass API (<code>data/sfo_osm.json</code>, <code>data/sfo_full_osm.json</code>), &copy; OpenStreetMap contributors, ODbL</td><td>real</td></tr>
-    <tr><td>Safety rules and citations (jet blast, beacons, right-of-way, fog, speed limits)</td>
-        <td><a style="color:var(--accent)" href="https://www.faa.gov/airports/resources/advisory_circulars">FAA Advisory Circular AC 150/5210-20A</a>, <i>Ground Vehicle Operations</i> (2015, public domain), <code>data/faa_ac_150_5210_20A.pdf</code></td><td>real</td></tr>
-    <tr><td>Aircraft size: A320, 737-800, 777-300ER, A350-900</td>
-        <td><a style="color:var(--accent)" href="https://www.faa.gov/airports/engineering/aircraft_char_database">FAA Aircraft Characteristics Database</a> (<code>data/aircraft.json</code>)</td><td>real</td></tr>
-    <tr><td>Engine positions and jet-blast lengths</td><td>Manufacturer Airport Planning documents (Airbus / Boeing)</td><td>approximate</td></tr>
-    <tr><td>Speed limits and clearance distances</td><td>Example values: the FAA AC leaves speed limits to each airport operator</td><td>example</td></tr>
-    <tr><td>Tractors, aircraft schedules, crew, debris, fog, GPS noise</td><td>AirGuard simulator (<code>sim.py</code>, <code>fleet.py</code>), seeded and reproducible</td><td>simulated</td></tr>
-    <tr><td>1,000 random stress scenarios (about 850k simulation steps)</td><td><code>stress.py</code>, seeded</td><td>simulated</td></tr>
-    <tr><td>40+ red-team scenarios and the safety limits</td><td>Written live by SubQ <code>subq-preview</code> after reading the FAA AC, the map and every trace (about 4M tokens read)</td><td>AI-generated, validated</td></tr>
-    <tr><td>One controller update</td><td>Written live by Meta Muse Spark (<code>tugs/tug_meta_1.py</code>): BLOCKED by the gate</td><td>AI-generated</td></tr>
-    <tr><td>Agent call log (tokens, latency, outcomes)</td><td>Recorded from every SubQ, Snap and Meta call (<code>out/calls.jsonl</code>; hashes only, no prompts or keys)</td><td>measured</td></tr>
+    <tr><th>data</th><th>source</th><th></th></tr>
+    <tr><td>SFO map: runways, taxiways, 287 stands, 133 jet bridges, terminals, 3,206 buildings</td><td><a class="ln" href="https://www.openstreetmap.org/#map=15/37.6189/-122.3790">OpenStreetMap</a> via Overpass API, &copy; OpenStreetMap contributors, ODbL</td><td><span class="tag real">real</span></td></tr>
+    <tr><td>Safety rules and citations</td><td><a class="ln" href="https://www.faa.gov/airports/resources/advisory_circulars">FAA AC 150/5210-20A</a>, <i>Ground Vehicle Operations</i> (public domain)</td><td><span class="tag real">real</span></td></tr>
+    <tr><td>Aircraft dimensions (A320, 737-800, 777-300ER, A350-900)</td><td><a class="ln" href="https://www.faa.gov/airports/engineering/aircraft_char_database">FAA Aircraft Characteristics Database</a></td><td><span class="tag real">real</span></td></tr>
+    <tr><td>Engine positions and jet-blast lengths</td><td>Airbus / Boeing Airport Planning documents</td><td><span class="tag approx">approximate</span></td></tr>
+    <tr><td>Speed limits and clearances</td><td>Example values (the FAA leaves these to each airport)</td><td><span class="tag approx">example</span></td></tr>
+    <tr><td>Tractors, schedules, crew, fog, GPS noise, 1,000 stress scenarios</td><td>AirGuard simulator, seeded and reproducible</td><td><span class="tag sim">simulated</span></td></tr>
+    <tr><td>40+ red-team scenarios, one controller update</td><td>Written live by SubQ and Meta Muse Spark, then validated</td><td><span class="tag ai">AI-generated</span></td></tr>
   </table>
-  <p style="font-size:13px;color:var(--muted)">Background: driverless baggage tractors are in service at Singapore Changi (T1&ndash;T4) and Dubai DWC (dnata), with trials at Amsterdam Schiphol (Aurrigo) and Stuttgart, according to public airport and operator announcements.</p>
-  <h2>Real vs simulated</h2>
-  <p><b>Real:</b> SFO airport geometry (OpenStreetMap contributors, ODbL), FAA AC 150/5210-20A rules and citations, and aircraft dimensions (FAA Aircraft Characteristics Database).
-  <b>Approximate:</b> engine positions and jet-blast lengths. <b>Example values:</b> speed limits and clearances (the FAA leaves them to the airport operator).
-  <b>Simulated:</b> tractors, aircraft schedules, crew, fog and GPS noise.</p>
-  <p style="color:var(--muted);font-size:13px">Team: roshni2020. Built at AIE Code Summit 2026, "Trust but Verify" track, using Subquadratic (SubQ, Snap) and Meta (Muse Spark). Code: github.com/roshni2020/airguard</p>
+</div></section>
+
+<section class="right" data-cam="team"><div class="card">
+  <div class="kicker">Team</div><h2>Solo build by roshni2020</h2>
+  <p>Built alone at AIE Code Summit 2026 for the <b>Trust but Verify</b> track, entered for <b>Best Use of Subquadratic</b> (SubQ long-context red team plus SubQ Snap decisions) and <b>Best Use of Meta Model API</b> (Muse Spark implementer and vision).</p>
+  <p>Code: <a class="ln" href="https://github.com/roshni2020/airguard">github.com/roshni2020/airguard</a></p>
+  <div class="cta"><a href="airport.html">Fleet 3D</a><a class="alt" href="viewer.html#out/replay_tug_v2_ai.js">Gate evidence</a><a class="alt" href="agents.html">Agents</a></div>
+</div></section>
 </main>
+
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
-import * as THREE_ from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-const THREE = { ...THREE_, OrbitControls, BufferGeometryUtils: { mergeBufferGeometries: mergeGeometries } };
-
-// 3D hero: an aircraft at a stand, its jet-blast zone, and an autonomous tractor driving around it
-const el = document.getElementById('hero'), R = new THREE.WebGLRenderer({ antialias: true });
-R.setPixelRatio(Math.min(devicePixelRatio, 2)); el.prepend(R.domElement);
-const S = new THREE.Scene(); S.background = new THREE.Color(0x0b0e13); S.fog = new THREE.Fog(0x0b0e13, 90, 260);
-const C = new THREE.PerspectiveCamera(40, 1, 1, 1000);
-S.add(new THREE.HemisphereLight(0xdde6f0, 0x10141a, 0.9)); const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(-60, 120, 80); S.add(sun);
-const g = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), new THREE.MeshLambertMaterial({ color: 0x2b3139 })); g.rotation.x = -Math.PI / 2; S.add(g);
-const W = new THREE.MeshLambertMaterial({ color: 0xe6edf3 }), plane = new THREE.Group();
-const fus = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 1.8, 38, 18), W); fus.rotation.z = Math.PI / 2; fus.position.set(19, 3.6, 0); plane.add(fus);
-const nose = new THREE.Mesh(new THREE.SphereGeometry(2.2, 16, 12), W); nose.position.set(0, 3.6, 0); plane.add(nose);
-const wing = new THREE.Mesh(new THREE.BoxGeometry(5, 0.5, 36), W); wing.position.set(17, 2.6, 0); plane.add(wing);
-const tail = new THREE.Mesh(new THREE.BoxGeometry(4, 0.4, 12), W); tail.position.set(36, 4, 0); plane.add(tail);
-const fin = new THREE.Mesh(new THREE.BoxGeometry(5, 7, 0.5), W); fin.position.set(35, 8, 0); plane.add(fin);
-[-1, 1].forEach(s => { const e = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 4, 12), new THREE.MeshLambertMaterial({ color: 0x8b949e })); e.rotation.z = Math.PI / 2; e.position.set(12, 1.3, s * 5.75); plane.add(e); });
-const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.8, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff2020 })); beacon.position.set(16, 6.2, 0); plane.add(beacon);
-const blast = new THREE.Mesh(new THREE.PlaneGeometry(60, 31.5), new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: .32, side: THREE.DoubleSide, depthWrite: false }));
-blast.rotation.x = -Math.PI / 2; blast.position.set(42, 0.3, 0); plane.add(blast); S.add(plane);
-const tug = new THREE.Group(); const tb = new THREE.Mesh(new THREE.BoxGeometry(4, 2.2, 2.4), new THREE.MeshLambertMaterial({ color: 0x2ea043 })); tb.position.y = 1.3; tug.add(tb); S.add(tug);
-const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2, 2.2), new THREE.MeshLambertMaterial({ color: 0x6e7681 })); c.position.y = 1.1; S.add(c); return c; });
-const path = t => { const a = t * 0.25; return new THREE.Vector3(20 + Math.cos(a) * 55, 0, Math.sin(a) * 30 - 32); };   // loop that stays clear of the blast
-function resize() { const w = el.clientWidth, h = el.clientHeight; R.setSize(w, h); C.aspect = w / h; C.updateProjectionMatrix(); }
+import * as THREE from 'three';
+const R = window.AIRGUARD_REPLAY;
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg'), antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0e13); scene.fog = new THREE.Fog(0x0b0e13, 380, 900);
+const camera = new THREE.PerspectiveCamera(42, 1, 1, 3000);
+scene.add(new THREE.HemisphereLight(0xdde6f0, 0x10141a, 0.9 * Math.PI));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75 * Math.PI); sun.position.set(-200, 400, 150); scene.add(sun);
+const V = (x, y, h = 0) => new THREE.Vector3(x, h, -y);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.MeshLambertMaterial({ color: 0x141b15 }));
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.3; scene.add(ground);
+const shape = poly => new THREE.Shape(poly.map(p => new THREE.Vector2(p[0], p[1])));
+R.map.aprons.forEach(p => { const m = new THREE.Mesh(new THREE.ShapeGeometry(shape(p)), new THREE.MeshLambertMaterial({ color: 0x3a414c })); m.rotation.x = -Math.PI / 2; scene.add(m); });
+R.map.terminals.forEach(p => { const g = new THREE.ExtrudeGeometry(shape(p), { depth: 16, bevelEnabled: false }); g.rotateX(-Math.PI / 2); scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0x7d8ea5 }))); });
+const line = (pts, color, h) => scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts.map(p => V(p[0], p[1], h))), new THREE.LineBasicMaterial({ color })));
+R.map.taxiways.forEach(w => line(w, 0xd9b44a, 0.15)); R.map.parking.forEach(w => line(w, 0x56606c, 0.1));
+const run = R.runs.find(r => r.name === 'engine_start_adjacent') || R.runs[0];
+const white = new THREE.MeshLambertMaterial({ color: 0xe6edf3 }), planes = {};
+function plane(a) {
+  const fus = [[a[3], a[4]], [a[5], a[6]]], wing = [[a[7], a[8]], [a[9], a[10]]], bl = [[a[11], a[12]], [a[13], a[14]], [a[15], a[16]], [a[17], a[18]]];
+  const big = a[1].startsWith('B777') || a[1].startsWith('A350'), g = new THREE.Group(), h = big ? 4.6 : 3.2;
+  const cyl = (p, q, r, y) => { const A = V(p[0], p[1], y), B = V(q[0], q[1], y), m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, A.distanceTo(B), 14), white);
+    m.position.copy(A).lerp(B, .5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m; };
+  g.add(cyl(fus[0], fus[1], big ? 3.1 : 2.0, h)); g.add(cyl(wing[0], wing[1], 0.7, h - 1));
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(1, big ? 11 : 7, 6), white); fin.position.copy(V(fus[1][0], fus[1][1], h + 4)); fin.lookAt(V(fus[0][0], fus[0][1], h + 4)); g.add(fin);
+  const zone = new THREE.Mesh(new THREE.ShapeGeometry(shape(bl)), new THREE.MeshBasicMaterial({ color: 0xff6a1a, transparent: true, opacity: .38, side: THREE.DoubleSide, depthWrite: false }));
+  zone.rotation.x = -Math.PI / 2; zone.position.y = 0.4; g.add(zone);
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(1.4, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff2020 }));
+  beacon.position.copy(V((fus[0][0] + fus[1][0]) / 2, (fus[0][1] + fus[1][1]) / 2, h + 3.4)); g.add(beacon);
+  scene.add(g); return (planes[a[0]] = { g, zone, beacon, nose0: fus[0] });
+}
+const tug = new THREE.Group(); const tb = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.4, 2.6), new THREE.MeshLambertMaterial({ color: 0x2ea043 })); tb.position.y = 1.3; tug.add(tb); scene.add(tug);
+const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2, 2.3), new THREE.MeshLambertMaterial({ color: 0x8b949e })); scene.add(c); return c; });
+const trail = new THREE.Line(new THREE.BufferGeometry().setFromPoints(run.frames.map(f => V(f.x, f.y, 0.6))), new THREE.LineBasicMaterial({ color: 0x7ee787 })); scene.add(trail);
+const viol = run.violations[0];
+const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 36, 10), new THREE.MeshBasicMaterial({ color: 0xf85149 }));
+if (viol) pillar.position.copy(V(viol.x, viol.y, 18)); scene.add(pillar);
+const A7 = R.map.stands.A7 || [30, 26], P = (x, y, h) => V(x, y, h);
+const KEYS = {
+  hero: { pos: P(-180, -260, 230), tgt: P(110, -20, 0) }, who: { pos: P(330, 220, 170), tgt: P(100, 0, 0) },
+  why: { pos: P(A7[0] - 40, A7[1] + 120, 90), tgt: P(A7[0] + 50, A7[1] - 30, 0) }, data: { pos: P(A7[0] - 120, A7[1] - 60, 120), tgt: P(A7[0] + 70, A7[1] - 30, 0) },
+  how: { pos: P(260, -220, 260), tgt: P(110, -20, 0) },
+  found: { pos: P(viol ? viol.x + 60 : 150, viol ? viol.y - 70 : -40, 70), tgt: P(viol ? viol.x : 110, viol ? viol.y : -10, 0) },
+  sources: { pos: P(110, -20, 620), tgt: P(110, -10, 0) }, team: { pos: P(-260, 160, 300), tgt: P(110, -20, 0) },
+};
+const secs = [...document.querySelectorAll('section')], dots = document.getElementById('dots');
+secs.forEach(s => { const a = document.createElement('a'); a.href = '#'; a.title = s.dataset.cam; a.onclick = e => { e.preventDefault(); s.scrollIntoView({ behavior: 'smooth' }); }; dots.appendChild(a); });
+const camPos = KEYS.hero.pos.clone(), camTgt = KEYS.hero.tgt.clone();
+function scrollKey() {
+  const y = scrollY + innerHeight * 0.5; let i = 0; secs.forEach((s, k) => { if (s.offsetTop <= y) i = k; });
+  const a = KEYS[secs[i].dataset.cam], b = KEYS[secs[Math.min(secs.length - 1, i + 1)].dataset.cam];
+  const f = Math.min(1, Math.max(0, (y - secs[i].offsetTop) / secs[i].offsetHeight)), e = f * f * (3 - 2 * f);
+  [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+  return { pos: a.pos.clone().lerp(b.pos, e), tgt: a.tgt.clone().lerp(b.tgt, e) };
+}
+function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-S.traverse(o => { if (o.isLight) o.intensity *= Math.PI; });
-  (function loop(now) { requestAnimationFrame(loop); const t = now / 1000;
-  C.position.set(20 + Math.cos(t * 0.08) * 95, 48, Math.sin(t * 0.08) * 95); C.lookAt(20, 0, 0);
-  const on = Math.floor(t / 6) % 2; beacon.visible = on && Math.floor(t * 2.2) % 2; blast.visible = !!on;
-  const p = path(t), q = path(t + 0.05); tug.position.copy(p); tug.lookAt(q);
-  carts.forEach((c, k) => { c.position.copy(path(t - 0.12 * (k + 1))); c.position.y = 1.1; });
-  R.render(S, C); })(performance.now());
+const t0 = performance.now();
+(function loop(now) {
+  requestAnimationFrame(loop);
+  const T = run.frames[run.frames.length - 1].t, st = Math.max(0, ((now - t0) / 1000 * 3) % (T + 4));
+  const i = Math.min(run.frames.length - 2, Math.floor(st / 0.5)), w = Math.min(1, Math.max(0, (st - run.frames[i].t) / 0.5)), f0 = run.frames[i], f1 = run.frames[i + 1];
+  f0.ac.forEach(a => { const o = planes[a[0]] || plane(a), on = a[2] !== 'parked';
+    o.g.position.set(a[3] - o.nose0[0], 0, -(a[4] - o.nose0[1])); o.zone.visible = on; o.beacon.visible = on && Math.floor(now / 400) % 2 === 0;
+    o.zone.material.color.setHex(a[2] === 'beacon_on' ? 0xffc04d : 0xff6a1a); });
+  tug.position.copy(V(f0.x + (f1.x - f0.x) * w, f0.y + (f1.y - f0.y) * w)); if (f1.x !== f0.x || f1.y !== f0.y) tug.rotation.y = Math.atan2(f1.y - f0.y, f1.x - f0.x);
+  carts.forEach((c, k) => { const q = run.frames[Math.max(0, i - 2 * (k + 1))]; c.position.set(q.x, 1.1, -q.y); });
+  trail.geometry.setDrawRange(0, i + 1); pillar.visible = !!viol && f0.t >= viol.t;
+  const k = scrollKey(); camPos.lerp(k.pos, 0.06); camTgt.lerp(k.tgt, 0.06); camera.position.copy(camPos); camera.lookAt(camTgt);
+  renderer.render(scene, camera);
+})(performance.now());
 </script>
 </body>
 </html>

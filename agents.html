@@ -27,6 +27,9 @@
   <h2>Agent crew - node size = tokens consumed, edges = data flow, pulses = calls</h2>
   <div id="g"></div>
   <div class="grid" id="cards"></div>
+  <h2>Model comparison: which is faster, which is better (measured from every logged call)</h2>
+  <div class="tablewrap"><table id="cmp"></table></div>
+  <p style="color:var(--muted);font-size:12px;margin:6px 0 0">Quality evidence: Snap's large-data screen agreed with the Python judge on 44/46 scenarios for Meta's update and 32/46 for v2 (0 false alarms). As a diff-only reviewer it rated the genuinely safe fix P(safe)=0.055, which is wrong. SubQ's red-team scenarios raised the catch rate of unsafe code from 56% to 89% with 0 false blocks. Meta's update was BLOCKED (fog speed + jet blast).</p>
   <h2>SubQ long-horizon context growth (prompt tokens per red-team round)</h2>
   <div class="tablewrap"><table id="growth"></table></div>
   <h2>Per-agent totals</h2>
@@ -58,6 +61,16 @@ const maxG = Math.max(1, ...O.growth.flatMap(g => g.rounds.map(r => r[1])));
 document.getElementById('growth').innerHTML = '<tr><th>run</th><th>result</th><th>rounds (prompt tokens)</th></tr>' + O.growth.map(g =>
   `<tr><td>${esc(g.candidate)}<br><span style="color:var(--muted)">${esc(g.verdict)}</span></td><td style="color:${g.result === 'PASS' ? 'var(--ok)' : 'var(--bad)'}">${g.result}</td><td>` +
   g.rounds.map(r => `<div style="display:flex;gap:8px;align-items:center;margin:2px 0"><span style="width:26px;color:var(--muted)">R${r[0]}</span><div class="bar" style="width:${60 * r[1] / maxG}%"></div><span class="n">${fmt(r[1])}</span></div>`).join('') + '</td></tr>').join('');
+const byModel = {};
+O.calls.forEach(c => { const m = byModel[c.model] ||= { calls: 0, live: 0, tok: 0, lat: 0, liveLat: 0, liveTok: 0, agents: new Set() };
+  m.calls++; m.tok += c.prompt_tokens || 0; m.agents.add(c.agent);
+  if (!c.cached) { m.live++; m.liveLat += c.latency_s || 0; m.liveTok += c.prompt_tokens || 0; } });
+const ROLE = { 'subq-preview': ['SubQ long-context LLM', 'Best at deep reasoning over huge context: red team and test generation', 'slowest per call, largest context'],
+  'subq-snap-1.1': ['SubQ Snap decision model', 'Best at fast yes/no or score decisions over large state; answers are probabilities', 'fastest per token'],
+  'muse-spark-1.2': ['Meta Muse Spark', 'Writes code from a change request and describes images (vision)', 'small prompts'] };
+document.getElementById('cmp').innerHTML = '<tr><th>model</th><th>used for</th><th>calls (live)</th><th>avg latency (live)</th><th>avg prompt tokens</th><th>tokens / second</th><th>verdict</th></tr>' +
+  Object.entries(byModel).map(([m, x]) => { const al = x.live ? x.liveLat / x.live : 0, tps = x.liveLat ? x.liveTok / x.liveLat : 0, r = ROLE[m] || [m, '', ''];
+    return `<tr><td><b>${esc(r[0])}</b><br><span style="color:var(--muted)">${esc(m)}</span></td><td>${esc(r[1])}</td><td class="n">${x.calls} (${x.live})</td><td class="n">${al.toFixed(1)} s</td><td class="n">${fmt(Math.round(x.tok / x.calls))}</td><td class="n">${fmt(Math.round(tps))}</td><td>${esc(r[2])}</td></tr>`; }).join('');
 document.getElementById('totals').innerHTML = '<tr><th>agent</th><th>model</th><th>role</th><th>calls</th><th>cached</th><th>prompt tok</th><th>billed tok</th><th>latency s</th></tr>' +
   Object.entries(tot).sort((a, b) => b[1].tok - a[1].tok).map(([a, t]) => `<tr><td><b>${esc(a)}</b></td><td>${esc(t.model)}</td><td style="color:var(--muted)">${esc(O.crew[a] || '')}</td><td class="n">${t.calls}</td><td class="n">${t.cached}</td><td class="n">${fmt(t.tok)}</td><td class="n">${fmt(t.billed)}</td><td class="n">${t.lat.toFixed(1)}</td></tr>`).join('');
 document.getElementById('calls').innerHTML = '<tr><th>time</th><th>agent</th><th>rnd</th><th>model</th><th>prompt tok</th><th>latency</th><th>cache</th><th>outcome</th><th>sha256</th></tr>' +
