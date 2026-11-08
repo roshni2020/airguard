@@ -1,0 +1,16 @@
+{
+ "model": "muse-spark-1.2",
+ "text": "The autonomous baggage tractor (small green mark at the top-center red X) is triggering a max_speed violation at 5.6 m/s while positioned on the active taxi/apron corridor. This creates a collision and jet-blast hazard due to its high speed and proximity to parked aircraft at A6/A7 with reduced stopping and maneuvering margin.",
+ "usage": {
+  "completion_tokens": 1279,
+  "prompt_tokens": 889,
+  "total_tokens": 2168,
+  "completion_tokens_details": {
+   "reasoning_tokens": 1200
+  },
+  "prompt_tokens_details": {
+   "cached_tokens": 0
+  }
+ },
+ "latency_s": 11.39
+}

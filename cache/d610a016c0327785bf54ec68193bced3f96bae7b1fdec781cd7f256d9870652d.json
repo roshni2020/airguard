@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\": [{\"name\": \"rt_beacon_inside_zone_short_fuse\", \"seed\": 51, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 0.5, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 16, \"state\": \"beacon_on\"}, {\"t\": 19, \"state\": \"engines_running\"}, {\"t\": 45, \"state\": \"pushback\"}, {\"t\": 120, \"state\": \"gone\"}]}], \"obstacles\": []}, {\"name\": \"rt_pushback_close_gps_drift\", \"seed\": 52, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 2.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 60, \"events\": [{\"t\": 6, \"state\": \"beacon_on\"}, {\"t\": 8, \"state\": \"pushback\"}, {\"t\": 80, \"state\": \"gone\"}]}, {\"stand\": \"B20\", \"type\": \"A320\", \"push_dist\": 40, \"events\": [{\"t\": 4, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}], \"obstacles\": []}, {\"name\": \"rt_fog_tight_clearance\", \"seed\": 53, \"destination\": \"A8\", \"deadline\": 240, \"visibility\": 60, \"gps_noise\": 1.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 40, \"events\": []}], \"obstacles\": []}, {\"name\": \"rt_debris_person_route_gps\", \"seed\": 54, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 2.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 40, \"events\": []}], \"obstacles\": [{\"kind\": \"debris\", \"path\": [[114.4, -16.2]], \"speed\": 0, \"t0\": 0}, {\"kind\": \"person\", \"path\": [[124.6, 3.1], [108.0, -28.2]], \"speed\": 1.5, \"t0\": 8}]}]}",
+ "usage": {
+  "prompt_tokens": 1835448,
+  "completion_tokens": 1294,
+  "total_tokens": 1836742,
+  "prompt_tokens_details": {
+   "cached_tokens": 32384,
+   "created_cache_tokens": 1803008,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 679
+  }
+ },
+ "latency_s": 25.56
+}

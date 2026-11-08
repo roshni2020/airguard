@@ -225,7 +225,7 @@ def load_suite():
     return v
 
 
-def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both", notify_pass=False, use_suite=True):
+def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both", notify_pass=False, use_suite=True, export=True):
     llm.USAGE.clear()
     cand_path = Path(cand_path)
     rel = cand_path.resolve().relative_to(ROOT).as_posix()
@@ -416,7 +416,8 @@ def verify(cand_path, rounds=4, gif=False, deploy=True, fuzz=0, alert_mode="both
     builtin_names = {b["name"] for b in builtin}
     runs = [{"round": i, "source": "builtin" if r["scenario"]["name"] in builtin_names else "subq",
              "trace": r["trace"], "violations": r["violations"]} for i, rs in enumerate(all_res) for r in rs]
-    sim.export_replay(ROOT / "out" / f"replay_{cand_path.stem}.js", runs,
+    if export:   # selfcheck passes export=False so it never overwrites the published replays
+        sim.export_replay(ROOT / "out" / f"replay_{cand_path.stem}.js", runs,
                       {**body, "deployed_after": body_dep, "usage": usage, "triage": triage})
     out = ROOT / "verdicts" / f"{cand_path.stem}_{time.strftime('%Y%m%d_%H%M%S')}.json"
     llm.RUN["verdict_file"] = out.name

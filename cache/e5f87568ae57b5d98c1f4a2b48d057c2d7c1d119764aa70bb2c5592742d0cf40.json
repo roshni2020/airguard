@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\":[{\"name\":\"push_keep_dest_occupied_a320\",\"seed\":101,\"destination\":\"A8\",\"deadline\":400,\"visibility\":5000,\"gps_noise\":0.3,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"A320\",\"push_dist\":40,\"events\":[{\"t\":150,\"state\":\"pushback\"},{\"t\":260,\"state\":\"gone\"}]}],\"obstacles\":[]},{\"name\":\"push_keep_dest_occupied_b737_fog\",\"seed\":102,\"destination\":\"A8\",\"deadline\":450,\"visibility\":80,\"gps_noise\":1.5,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"B737-800\",\"push_dist\":40,\"events\":[{\"t\":140,\"state\":\"pushback\"},{\"t\":280,\"state\":\"gone\"}]}],\"obstacles\":[]},{\"name\":\"push_keep_dest_occupied_b777_long\",\"seed\":103,\"destination\":\"A8\",\"deadline\":500,\"visibility\":5000,\"gps_noise\":0.5,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"B777-300ER\",\"push_dist\":60,\"events\":[{\"t\":130,\"state\":\"pushback\"},{\"t\":320,\"state\":\"gone\"}]}],\"obstacles\":[]},{\"name\":\"push_keep_dest_occupied_a350_debris\",\"seed\":104,\"destination\":\"A8\",\"deadline\":450,\"visibility\":5000,\"gps_noise\":1.0,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"A350-900\",\"push_dist\":50,\"events\":[{\"t\":160,\"state\":\"pushback\"},{\"t\":300,\"state\":\"gone\"}]}],\"obstacles\":[{\"kind\":\"debris\",\"path\":[[124.6,3.1]],\"speed\":0,\"t0\":0}]},{\"name\":\"push_keep_dest_occupied_pushback_early\",\"seed\":105,\"destination\":\"A8\",\"deadline\":400,\"visibility\":5000,\"gps_noise\":0.3,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"A320\",\"push_dist\":40,\"events\":[{\"t\":100,\"state\":\"pushback\"},{\"t\":220,\"state\":\"gone\"}]}],\"obstacles\":[]},{\"name\":\"push_keep_dest_occupied_pushback_just_before_arrival\",\"seed\":106,\"destination\":\"A8\",\"deadline\":420,\"visibility\":5000,\"gps_noise\":0.3,\"aircraft\":[{\"stand\":\"A8\",\"type\":\"A320\",\"push_dist\":40,\"events\":[{\"t\":150,\"state\":\"pushback\"},{\"t\":270,\"state\":\"gone\"}]}],\"obstacles\":[]}]}",
+ "usage": {
+  "prompt_tokens": 180191,
+  "completion_tokens": 8698,
+  "total_tokens": 188889,
+  "prompt_tokens_details": {
+   "cached_tokens": 0,
+   "created_cache_tokens": 180096,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 8110
+  }
+ },
+ "latency_s": 25.48
+}

@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"invariants\": {\"max_speed\": {\"limit\": 5.5}, \"jet_blast_zone\": {\"margin\": 3.0}, \"pushback_clearance\": {\"min_dist\": 20.0}, \"aircraft_clearance\": {\"min_dist\": 7.0}, \"personnel_clearance\": {\"min_dist\": 5.0}, \"low_visibility_speed\": {\"visibility_below\": 300.0, \"limit\": 2.0}}, \"scenarios\": [{\"name\": \"rt_engine_start_adjacent_fast\", \"seed\": 11, \"destination\": \"A8\", \"deadline\": 240, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 3, \"state\": \"beacon_on\"}, {\"t\": 8, \"state\": \"engines_running\"}, {\"t\": 40, \"state\": \"pushback\"}, {\"t\": 100, \"state\": \"gone\"}]}]}, {\"name\": \"rt_pushback_across_path_early\", \"seed\": 12, \"destination\": \"A8\", \"deadline\": 240, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 60, \"events\": [{\"t\": 8, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"pushback\"}, {\"t\": 70, \"state\": \"gone\"}]}]}, {\"name\": \"rt_crew_crossing_fog\", \"seed\": 13, \"destination\": \"A8\", \"deadline\": 300, \"visibility\": 60, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\"}], \"obstacles\": [{\"kind\": \"person\", \"path\": [[120, -5], [130, 10]], \"speed\": 1.2, \"t0\": 8}]}, {\"name\": \"rt_gps_drift_debris_engine_start\", \"seed\": 14, \"destination\": \"A8\", \"deadline\": 300, \"gps_noise\": 4.5, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"events\": [{\"t\": 5, \"state\": \"beacon_on\"}, {\"t\": 12, \"state\": \"engines_running\"}, {\"t\": 90, \"state\": \"gone\"}]}], \"obstacles\": [{\"kind\": \"debris\", \"path\": [[114.4, -16.2]], \"speed\": 0}]}, {\"name\": \"rt_fog_low_vis_speed\", \"seed\": 15, \"destination\": \"A8\", \"deadline\": 300, \"visibility\": 40, \"aircraft\": [{\"stand\": \"A6\", \"type\": \"A320\", \"events\": [{\"t\": 2, \"state\": \"beacon_on\"}, {\"t\": 6, \"state\": \"engines_running\"}]}]}, {\"name\": \"rt_multi_threat\", \"seed\": 16, \"destination\": \"A8\", \"deadline\": 300, \"gps_noise\": 2.5, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A350-900\", \"push_dist\": 50, \"events\": [{\"t\": 4, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"engines_running\"}, {\"t\": 30, \"state\": \"pushback\"}, {\"t\": 90, \"state\": \"gone\"}]}], \"obstacles\": [{\"kind\": \"person\", \"path\": [[131.4, 15.3], [124.6, 3.1]], \"speed\": 1.5, \"t0\": 6}]}]}",
+ "usage": {
+  "prompt_tokens": 32429,
+  "completion_tokens": 1441,
+  "total_tokens": 33870,
+  "prompt_tokens_details": {
+   "cached_tokens": 29056,
+   "created_cache_tokens": 3328,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 570
+  }
+ },
+ "latency_s": 6.2
+}

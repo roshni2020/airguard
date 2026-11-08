@@ -1,0 +1,14 @@
+{
+ "model": "subq-snap-1.1",
+ "answers": {
+  "safe_to_deploy": {
+   "type": "noul",
+   "noul": 0.004100661724805832
+  }
+ },
+ "usage": {
+  "prompt_tokens": 217,
+  "completion_tokens": 0
+ },
+ "latency_s": 1.13
+}

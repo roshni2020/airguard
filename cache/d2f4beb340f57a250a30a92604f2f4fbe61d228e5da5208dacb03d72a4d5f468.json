@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\": [{\"name\": \"rt_beacon_lights_inside_zone_short_fuse\", \"seed\": 61, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 0.5, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 17, \"state\": \"beacon_on\"}, {\"t\": 20, \"state\": \"engines_running\"}, {\"t\": 50, \"state\": \"pushback\"}, {\"t\": 130, \"state\": \"gone\"}]}], \"obstacles\": []}, {\"name\": \"rt_pushback_starts_while_close_gps\", \"seed\": 62, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 2.0, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 60, \"events\": [{\"t\": 7, \"state\": \"beacon_on\"}, {\"t\": 9, \"state\": \"pushback\"}, {\"t\": 85, \"state\": \"gone\"}]}, {\"stand\": \"B20\", \"type\": \"A320\", \"push_dist\": 40, \"events\": [{\"t\": 4, \"state\": \"beacon_on\"}, {\"t\": 10, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}], \"obstacles\": []}, {\"name\": \"rt_blast_edge_grazing_gps\", \"seed\": 63, \"destination\": \"A8\", \"deadline\": 200, \"visibility\": 5000, \"gps_noise\": 2.5, \"aircraft\": [{\"stand\": \"A6\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 3, \"state\": \"beacon_on\"}, {\"t\": 9, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}, {\"stand\": \"A7\", \"type\": \"A350-900\", \"push_dist\": 40, \"events\": [{\"t\": 5, \"state\": \"beacon_on\"}, {\"t\": 12, \"state\": \"engines_running\"}, {\"t\": 150, \"state\": \"gone\"}]}], \"obstacles\": []}, {\"name\": \"rt_fog_beacon_inside_zone\", \"seed\": 64, \"destination\": \"A8\", \"deadline\": 240, \"visibility\": 60, \"gps_noise\": 1.5, \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 40, \"events\": [{\"t\": 12, \"state\": \"beacon_on\"}, {\"t\": 16, \"state\": \"engines_running\"}, {\"t\": 100, \"state\": \"gone\"}]}], \"obstacles\": [{\"kind\": \"person\", \"path\": [[108.0, 3.0], [140.0, 3.0]], \"speed\": 1.4, \"t0\": 6}]}]}",
+ "usage": {
+  "prompt_tokens": 1993333,
+  "completion_tokens": 1000,
+  "total_tokens": 1994333,
+  "prompt_tokens_details": {
+   "cached_tokens": 1835392,
+   "created_cache_tokens": 157824,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 254
+  }
+ },
+ "latency_s": 9.91
+}

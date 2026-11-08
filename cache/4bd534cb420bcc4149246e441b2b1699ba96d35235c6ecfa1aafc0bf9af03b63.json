@@ -1,0 +1,18 @@
+{
+ "model": "subq-preview",
+ "text": "{\"scenarios\": [\n  {\"name\": \"imp2_0_a8_a320_pushback_while_enroute\", \"seed\": 201, \"destination\": \"A8\", \"deadline\": 200.0, \"visibility\": 5000.0, \"gps_noise\": 0.3,\n   \"aircraft\": [{\"stand\": \"A8\", \"type\": \"A320\", \"push_dist\": 40.0, \"events\": [{\"t\": 2.0, \"state\": \"beacon_on\"}, {\"t\": 4.0, \"state\": \"pushback\"}, {\"t\": 75.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []},\n  {\"name\": \"imp2_1_a7_b777_pushback_sweeps_route\", \"seed\": 202, \"destination\": \"A8\", \"deadline\": 300.0, \"visibility\": 5000.0, \"gps_noise\": 0.3,\n   \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 25.0, \"events\": [{\"t\": 1.0, \"state\": \"beacon_on\"}, {\"t\": 2.0, \"state\": \"engines_running\"}, {\"t\": 3.0, \"state\": \"pushback\"}, {\"t\": 110.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []},\n  {\"name\": \"imp2_2_a7_b777_pushback_fog_gps\", \"seed\": 203, \"destination\": \"A8\", \"deadline\": 340.0, \"visibility\": 90.0, \"gps_noise\": 1.5,\n   \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 25.0, \"events\": [{\"t\": 1.0, \"state\": \"beacon_on\"}, {\"t\": 2.0, \"state\": \"engines_running\"}, {\"t\": 3.0, \"state\": \"pushback\"}, {\"t\": 120.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []},\n  {\"name\": \"imp2_3_a8_b777_pushback_gps\", \"seed\": 204, \"destination\": \"A8\", \"deadline\": 300.0, \"visibility\": 5000.0, \"gps_noise\": 0.8,\n   \"aircraft\": [{\"stand\": \"A8\", \"type\": \"B777-300ER\", \"push_dist\": 30.0, \"events\": [{\"t\": 2.0, \"state\": \"beacon_on\"}, {\"t\": 3.0, \"state\": \"pushback\"}, {\"t\": 100.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []},\n  {\"name\": \"imp2_4_a7_a320_long_push\", \"seed\": 205, \"destination\": \"A8\", \"deadline\": 320.0, \"visibility\": 5000.0, \"gps_noise\": 0.5,\n   \"aircraft\": [{\"stand\": \"A7\", \"type\": \"A320\", \"push_dist\": 55.0, \"events\": [{\"t\": 1.0, \"state\": \"beacon_on\"}, {\"t\": 2.0, \"state\": \"pushback\"}, {\"t\": 120.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []},\n  {\"name\": \"imp2_5_a7_and_a8_both_pushing\", \"seed\": 206, \"destination\": \"A8\", \"deadline\": 320.0, \"visibility\": 5000.0, \"gps_noise\": 0.3,\n   \"aircraft\": [{\"stand\": \"A7\", \"type\": \"B777-300ER\", \"push_dist\": 25.0, \"events\": [{\"t\": 1.0, \"state\": \"beacon_on\"}, {\"t\": 2.0, \"state\": \"engines_running\"}, {\"t\": 3.0, \"state\": \"pushback\"}, {\"t\": 100.0, \"state\": \"gone\"}]},\n                {\"stand\": \"A8\", \"type\": \"A320\", \"push_dist\": 40.0, \"events\": [{\"t\": 2.0, \"state\": \"beacon_on\"}, {\"t\": 4.0, \"state\": \"pushback\"}, {\"t\": 100.0, \"state\": \"gone\"}]}],\n   \"obstacles\": []}\n]}",
+ "usage": {
+  "prompt_tokens": 181368,
+  "completion_tokens": 16684,
+  "total_tokens": 198052,
+  "prompt_tokens_details": {
+   "cached_tokens": 180096,
+   "created_cache_tokens": 1152,
+   "multimodal_tokens": null
+  },
+  "completion_tokens_details": {
+   "reasoning_tokens": 15639
+  }
+ },
+ "latency_s": 42.35
+}
