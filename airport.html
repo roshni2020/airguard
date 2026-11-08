@@ -57,10 +57,15 @@
 </div>
 <div id="legend" class="panel"><i style="background:#2ea043"></i>tractor<i style="background:#e6edf3"></i>aircraft<i style="background:#ffc04d"></i>beacon on<i style="background:#ff6a1a"></i>jet blast live<i style="background:#bc8cff"></i>crew<i style="background:#f85149"></i>safety finding<span style="margin-left:10px">Map &copy; OpenStreetMap contributors (ODbL) &middot; fleet, schedules, crew simulated</span></div>
 <div id="err"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-<script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
+
+<script type="module">
+import * as THREE_ from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+const THREE = { ...THREE_, OrbitControls, BufferGeometryUtils: { mergeBufferGeometries: mergeGeometries } };
+
 const s = document.createElement('script');
 s.src = 'out/airport_replay.js';
 s.onload = () => start(window.AIRPORT);
@@ -108,7 +113,7 @@ function start(D) {
   scene.add(new THREE.Mesh(ribbons(D.map.jet_bridges, 3.5, 5), new THREE.MeshLambertMaterial({ color: 0x9aa7b8, side: THREE.DoubleSide })));
   const label = (text, color, scale = 1) => { const c = document.createElement('canvas'); c.width = 256; c.height = 64;
     const x = c.getContext('2d'); x.font = 'bold 34px system-ui'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 32);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false, transparent: true })); sp.scale.set(40 * scale, 10 * scale, 1); return sp; };
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: Object.assign(new THREE.CanvasTexture(c), { colorSpace: THREE.SRGBColorSpace }), depthTest: false, transparent: true })); sp.scale.set(40 * scale, 10 * scale, 1); return sp; };
   D.map.runways.forEach(r => { if (r.ref) { const p = r.pts[0]; const l = label(r.ref, '#c9d1d9', 2.2); l.position.copy(V(p[0], p[1], 30)); scene.add(l); } });
   Object.entries(D.map.stands).forEach(([k, p]) => { const l = label(k, '#8b949e', 0.55); l.position.copy(V(p[0], p[1], 9)); scene.add(l); });
 
@@ -229,6 +234,7 @@ function start(D) {
   function resize() { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
   addEventListener('resize', resize); resize(); setCam('piers'); update(); updateUI();
   let lastUI = 0;
+  scene.traverse(o => { if (o.isLight) o.intensity *= Math.PI; });
   (function loop(now) {
     requestAnimationFrame(loop);
     const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = now;

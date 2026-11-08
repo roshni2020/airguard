@@ -56,8 +56,13 @@
   <b>Simulated:</b> tractors, aircraft schedules, crew, fog and GPS noise.</p>
   <p style="color:var(--muted);font-size:13px">Team: roshni2020. Built at AIE Code Summit 2026, "Trust but Verify" track, using Subquadratic (SubQ, Snap) and Meta (Muse Spark). Code: github.com/roshni2020/airguard</p>
 </main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE_ from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+const THREE = { ...THREE_, OrbitControls, BufferGeometryUtils: { mergeBufferGeometries: mergeGeometries } };
+
 // 3D hero: an aircraft at a stand, its jet-blast zone, and an autonomous tractor driving around it
 const el = document.getElementById('hero'), R = new THREE.WebGLRenderer({ antialias: true });
 R.setPixelRatio(Math.min(devicePixelRatio, 2)); el.prepend(R.domElement);
@@ -80,7 +85,8 @@ const carts = [0, 1, 2].map(() => { const c = new THREE.Mesh(new THREE.BoxGeomet
 const path = t => { const a = t * 0.25; return new THREE.Vector3(20 + Math.cos(a) * 55, 0, Math.sin(a) * 30 - 32); };   // loop that stays clear of the blast
 function resize() { const w = el.clientWidth, h = el.clientHeight; R.setSize(w, h); C.aspect = w / h; C.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-(function loop(now) { requestAnimationFrame(loop); const t = now / 1000;
+S.traverse(o => { if (o.isLight) o.intensity *= Math.PI; });
+  (function loop(now) { requestAnimationFrame(loop); const t = now / 1000;
   C.position.set(20 + Math.cos(t * 0.08) * 95, 48, Math.sin(t * 0.08) * 95); C.lookAt(20, 0, 0);
   const on = Math.floor(t / 6) % 2; beacon.visible = on && Math.floor(t * 2.2) % 2; blast.visible = !!on;
   const p = path(t), q = path(t + 0.05); tug.position.copy(p); tug.lookAt(q);

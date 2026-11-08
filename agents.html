@@ -34,10 +34,15 @@
   <h2>Call timeline (newest first, from out/calls.jsonl - hashes only, never prompts or keys)</h2>
   <div class="tablewrap"><table id="calls"></table></div>
 </main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
 <script src="out/calls.js"></script>
-<script>
+<script type="module">
+import * as THREE_ from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+const THREE = { ...THREE_, OrbitControls, BufferGeometryUtils: { mergeBufferGeometries: mergeGeometries } };
+
 const O = window.OBS || { crew: {}, calls: [], growth: [] };
 const fmt = n => (n || 0).toLocaleString();
 const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -66,7 +71,7 @@ const ctl = new THREE.OrbitControls(C, R.domElement); ctl.autoRotate = true; ctl
 S.add(new THREE.HemisphereLight(0xffffff, 0x223344, 1));
 const label = (text, color) => { const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
   x.font = 'bold 30px system-ui'; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 256, 32);
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false })); s.scale.set(16, 2, 1); return s; };
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: Object.assign(new THREE.CanvasTexture(c), { colorSpace: THREE.SRGBColorSpace }), depthTest: false })); s.scale.set(16, 2, 1); return s; };
 const COL = { subq: 0x58a6ff, snap: 0x39c5cf, meta: 0xa371f7, core: 0x3fb950 };
 const nodes = {};
 const add = (name, pos, color, size) => { const m = new THREE.Mesh(new THREE.SphereGeometry(size, 24, 16), new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.25 }));
@@ -87,7 +92,8 @@ const order = O.calls.map(c => c.agent).filter(a => nodes[a]);
 let k = 0, last = performance.now();
 function resize() { const w = el.clientWidth, h = el.clientHeight; R.setSize(w, h); C.aspect = w / h; C.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();
-(function loop(now) {
+S.traverse(o => { if (o.isLight) o.intensity *= Math.PI; });
+  (function loop(now) {
   requestAnimationFrame(loop);
   if (order.length && now - last > 700) { last = now; const a = order[k++ % order.length];
     const target = a.startsWith('subq') ? 'simulator (sim.py, real SFO)' : 'Python judge (checks.py)';

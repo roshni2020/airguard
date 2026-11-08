@@ -54,9 +54,14 @@
   </div>
   <div id="side"></div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
+<script type="module">
+import * as THREE_ from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+const THREE = { ...THREE_, OrbitControls, BufferGeometryUtils: { mergeBufferGeometries: mergeGeometries } };
+
 const file = decodeURIComponent(location.hash.slice(1)) || 'out/replay_tug_v2_ai.js';
 const s = document.createElement('script');
 s.src = file;
@@ -107,7 +112,7 @@ function start(R) {
     const c = document.createElement('canvas'); c.width = 256; c.height = 64;
     const x = c.getContext('2d'); x.font = `bold ${size}px system-ui`; x.fillStyle = color;
     x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 128, 32);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: Object.assign(new THREE.CanvasTexture(c), { colorSpace: THREE.SRGBColorSpace }), depthTest: false }));
     sp.scale.set(24, 6, 1); return sp;
   };
   Object.entries(R.map.stands).forEach(([k, p]) => { const l = label(k); l.position.copy(V(p[0], p[1], 6)); scene.add(l); });
@@ -268,6 +273,7 @@ function start(R) {
   addEventListener('resize', resize); resize();
   const firstBad = R.runs.findIndex(r => r.violations.length);
   selectRun(firstBad >= 0 ? firstBad : 0);
+  scene.traverse(o => { if (o.isLight) o.intensity *= Math.PI; });
   (function loop(now) {
     requestAnimationFrame(loop);
     const dt = Math.max(0, (now - last) / 1000); last = now;
