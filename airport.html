@@ -23,12 +23,14 @@
   #stats { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:0 14px; }
   .stat { background:#161b22; border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
   .stat b { display:block; font-size:18px; } .stat span { font-size:10px; color:var(--muted); text-transform:uppercase; }
-  #bots { overflow-y:auto; max-height:34vh; padding:0 8px; }
+  #bots { overflow-y:auto; max-height:22vh; padding:0 8px; }
   .bot { display:grid; grid-template-columns:34px 1fr auto; gap:6px; align-items:center; padding:4px 6px; border-radius:5px; cursor:pointer; }
   .bot:hover { background:#1c222b; } .bot.sel { background:#1f2a3a; outline:1px solid var(--accent); }
   .dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:4px; }
   .muted { color:var(--muted); } .mono { font-family:ui-monospace, Consolas, monospace; font-size:11px; }
-  #feed { flex:1; overflow-y:auto; padding:0 14px 12px; font-size:12px; }
+  #feed { flex:1; min-height:200px; overflow-y:auto; padding:0 14px 12px; font-size:12px; }
+  details.fold { margin:8px 14px 0; font-size:12px; color:#c9d1d9; } details.fold summary { cursor:pointer; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; font-size:11px; }
+  .ev { animation: evIn .35s ease-out; } @keyframes evIn { from { background:rgba(88,166,255,.18); } to { background:transparent; } }
   .ev { padding:3px 0; border-bottom:1px solid #1c222b; } .ev .t { color:var(--muted); font-family:ui-monospace, Consolas, monospace; margin-right:6px; }
   .ev.bad { color:#ffa198; } .ev.beacon { color:#ffc04d; } .ev.push { color:#ff8c1a; } .ev.deliver { color:#7ee787; }
   #legend { left:12px; bottom:12px; padding:6px 10px; font-size:11px; color:var(--muted); }
@@ -52,8 +54,9 @@
 <div id="side" class="panel">
   <h2>Fleet</h2><div id="stats"></div>
   <h2>Bots (click to follow)</h2><div id="bots"></div>
-  <h2>What the fleet twin found</h2><div id="findings" style="padding:0 14px;font-size:12px;color:#c9d1d9"></div>
-  <h2>Live events</h2><div id="feed"></div><div style="margin:12px 14px;padding:8px 10px;border:1px solid #28303b;border-radius:6px;font-size:12px;color:#8b949e"><b style="color:#e6edf3">Team</b><br>roshni2020 (github.com/roshni2020)<br><b style="color:#e6edf3">Track</b> Trust but Verify &middot; AIE Code Summit 2026<br><b style="color:#e6edf3">Sponsors used</b> Subquadratic (SubQ, Snap), Meta (Muse Spark)</div>
+  <details class="fold"><summary>What the fleet twin found</summary><div id="findings" style="margin-top:6px"></div></details>
+  <h2>Live events <span id="evcount" style="text-transform:none;letter-spacing:0"></span></h2><div id="feed"></div>
+  <details class="fold" style="margin-bottom:10px"><summary>Team &amp; track</summary><div style="margin:6px 0 0;padding:8px 10px;border:1px solid #28303b;border-radius:6px;font-size:12px;color:#8b949e"><b style="color:#e6edf3">Team</b><br>roshni2020 (github.com/roshni2020)<br><b style="color:#e6edf3">Track</b> Trust but Verify &middot; AIE Code Summit 2026<br><b style="color:#e6edf3">Sponsors used</b> Subquadratic (SubQ, Snap), Meta (Muse Spark)</div></details>
 </div>
 <div id="legend" class="panel"><i style="background:#2ea043"></i>tractor<i style="background:#e6edf3"></i>aircraft<i style="background:#ffc04d"></i>beacon on<i style="background:#ff6a1a"></i>jet blast live<i style="background:#bc8cff"></i>crew<i style="background:#f85149"></i>safety finding<span style="margin-left:10px">Map &copy; OpenStreetMap contributors (ODbL) &middot; fleet, schedules, crew simulated</span></div>
 <div id="err"></div>
@@ -160,10 +163,17 @@ function start(D) {
 
   // ---------- events timeline (aircraft states, jobs, findings) ----------
   const events = [];
+  const SAY = { beacon_on: 'beacon on: engine start coming', engines_running: 'engines running: jet blast is live',
+                pushback: 'pushing back: aircraft has right-of-way', gone: 'taxied away: stand clear', parked: 'parked' };
   D.aircraft.forEach(a => a.events.forEach(e => events.push({ t: e.t, cls: e.state === 'beacon_on' ? 'beacon' : e.state === 'gone' ? '' : 'push',
-    text: `${a.stand} ${a.type}: ${e.state.replace('_', ' ')}` })));
-  D.jobs.forEach((js, k) => js.forEach(j => events.push({ t: j.t, cls: j.kind === 'deliver' ? 'deliver' : '', text: `B${k} ${j.kind === 'deliver' ? 'dispatched to' : 'returning from'} ${j.stand}` })));
-  D.violations.forEach(v => events.push({ t: v.t, cls: 'bad', text: `B${v.bot} ${v.rule.replace(/_/g, ' ')} (${typeof v.measured === 'number' ? v.measured.toFixed(1) : v.measured} vs ${v.limit})` }));
+    text: `<b>${a.stand}</b> ${a.type} ${SAY[e.state] || e.state}` })));
+  D.jobs.forEach((js, k) => js.forEach(j => events.push({ t: j.t, cls: j.kind === 'deliver' ? 'deliver' : '',
+    text: j.kind === 'deliver' ? `<b>B${k}</b> dispatched with bags to stand ${j.stand}` : `<b>B${k}</b> loaded at ${j.stand}, returning to terminal` })));
+  const num = x => typeof x === 'number' ? x.toFixed(1) : x;
+  D.violations.forEach(v => events.push({ t: v.t, cls: 'bad', text:
+    v.rule === 'personnel_clearance' ? `<b>B${v.bot}</b> fleet finding: came ${num(v.measured)} m from another robot/person (limit ${v.limit} m)` :
+    v.rule === 'aircraft_clearance' ? `<b>B${v.bot}</b> fleet finding: passed ${num(v.measured)} m from a neighbouring aircraft (limit ${v.limit} m)` :
+    `<b>B${v.bot}</b> ${v.rule.replace(/_/g, ' ')}: ${num(v.measured)} vs ${v.limit}` }));
   events.sort((a, b) => a.t - b.t);
 
   // ---------- UI ----------
@@ -217,6 +227,8 @@ function start(D) {
     const f0 = frameAt(t);
     while (nextEv < events.length && events[nextEv].t <= t) { const e = events[nextEv++]; const d = document.createElement('div');
       d.className = 'ev ' + e.cls; d.innerHTML = `<span class="t">${fmtClock(e.t)}</span>${e.text}`; $('feed').prepend(d); }
+    const feed = $('feed'); while (feed.children.length > 40) feed.lastChild.remove();
+    $('evcount').textContent = `(${nextEv} of ${events.length})`;
     $('clock').textContent = fmtClock(t);
     const done = D.jobs.map(js => js.filter(j => j.kind === 'return' && j.t <= t).length);
     const active = D.aircraft.filter(a => !['parked', 'gone'].includes(stateAt(a, t))).length;
